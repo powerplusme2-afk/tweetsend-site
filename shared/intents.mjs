@@ -189,7 +189,9 @@ export async function upsertUser(u) {
 export async function userByHandle(handle) {
   const sql = await getSql();
   const h = String(handle).replace(/^@/, '');
-  const rows = await sql`select * from users where lower(x_handle) = lower(${h}) limit 1`;
+  /* Handles move between accounts over time; the row seen most recently wins. */
+  const rows = await sql`select * from users where lower(x_handle) = lower(${h})
+                         order by last_login_at desc nulls last, created_at desc limit 1`;
   return rows[0] ?? null;
 }
 
