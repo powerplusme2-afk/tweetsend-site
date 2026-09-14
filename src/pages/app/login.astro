@@ -1,0 +1,19 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Shell from '../../components/app/Shell.astro';
+import '../../styles/app.css';
+export const prerender = true;
+---
+<Layout title="Sign in — TweetSend">
+  <Shell title="Sign in" active="none">
+    <div class="card"><div class="state" data-signin-state></div></div>
+  </Shell>
+</Layout>
+<script>
+  import { bootShell, onWallet, privy, setHtml, signInHtml } from '../../scripts/app/shell';
+  bootShell();
+  onWallet(() => {
+    if (privy()?.authenticated) { location.replace(new URLSearchParams(location.search).get('next') || '/app'); return; }
+    setHtml('[data-signin-state]', signInHtml('TweetSend'));
+  });
+</script>

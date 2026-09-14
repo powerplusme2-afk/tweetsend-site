@@ -1,0 +1,53 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Shell from '../../components/app/Shell.astro';
+import '../../styles/app.css';
+export const prerender = true;
+---
+
+<Layout title="Settings — TweetSend">
+  <Shell title="Settings" sub="Your X account, your wallet, and what is wired up on the server." active="settings">
+    <div class="notice is-bad" data-error hidden></div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <div class="card-head"><h2>Account</h2></div>
+          <div class="state" data-signin-state hidden></div>
+          <dl class="kv" data-account hidden>
+            <div><dt>X account</dt><dd data-x>—</dd></div>
+            <div><dt>X id</dt><dd class="mono" data-xid>—</dd></div>
+            <div><dt>Email</dt><dd data-email>—</dd></div>
+            <div><dt>Identity via</dt><dd data-via>—</dd></div>
+          </dl>
+          <div class="actions" style="margin-top:14px">
+            <button class="btn btn-secondary btn-sm" type="button" data-link-x hidden>Link X</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-signout hidden>Sign out</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Wallet</h2></div>
+          <dl class="kv">
+            <div><dt>TweetSend wallet</dt><dd class="mono" data-wallet>—</dd></div>
+            <div><dt>Signing with</dt><dd class="mono" data-signer>—</dd></div>
+            <div><dt>Network</dt><dd data-chain>—</dd></div>
+            <div><dt>Asset</dt><dd>USDG (fixed in MVP)</dd></div>
+          </dl>
+          <p class="help" style="margin-top:12px">Money addressed to your @handle lands in the TweetSend wallet. It is a real wallet, yours; link an external one in the sign-in sheet if you want a second key to it.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>Server setup</h2></div>
+        <p class="help">What the server has and has not been given. Values are never shown, only whether they are set.</p>
+        <ul class="rules" data-setup style="margin-top:14px"><li><div><b>Reading…</b></div></li></ul>
+      </div>
+    </div>
+  </Shell>
+</Layout>
+
+<script>
+  import { bootSettings } from '../../scripts/app/settings';
+  bootSettings();
+</script>

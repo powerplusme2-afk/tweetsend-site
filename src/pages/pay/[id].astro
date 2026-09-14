@@ -1,0 +1,107 @@
+---
+/**
+ * The link the bot posts: /pay/:id.
+ *
+ * Rendered on the server so the recipient card, the amount and the status are
+ * in the HTML before any script runs — a sender on a phone sees who they are
+ * paying at once. The script then signs the sender in and runs the payment.
+ */
+import Layout from '../../layouts/Layout.astro';
+import Shell from '../../components/app/Shell.astro';
+import '../../styles/app.css';
+import { getIntent, userByXId } from '../../../shared/intents.mjs';
+
+export const prerender = false;
+
+const id = Astro.params.id ?? '';
+const intent = await getIntent(id);
+const recipient = intent?.recipient_x_id ? await userByXId(intent.recipient_x_id) : null;
+const handle = recipient?.x_handle ?? intent?.recipient_handle ?? null;
+const amount = intent ? Number(intent.amount_usd) : 0;
+const amountText = `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const title = intent ? `Send ${amountText} to @${handle ?? '…'} — TweetSend` : 'No such send — TweetSend';
+---
+
+<Layout title={title}>
+  <Shell title={intent ? `${amountText} to @${handle ?? '…'}` : 'No such send'} sub={intent ? (intent.source === 'x' ? `From your reply on X${intent.sender_handle ? ` as @${intent.sender_handle}` : ''}.` : 'Started on the site.') : undefined} active="pay">
+    <div class="notice is-bad" data-error hidden></div>
+
+    {!intent ? (
+      <div class="card"><div class="state">
+        <h2>This link does not point to a send.</h2>
+        <p>Check the link in the bot's reply, or start a new one from <a href="/app/send">Send</a>.</p>
+      </div></div>
+    ) : (
+      <div class="grid-2" data-pay data-id={intent.id} data-status={intent.status} data-sender-x={intent.sender_x_id ?? ''} data-sender-handle={intent.sender_handle ?? ''} data-amount={amount} data-wallet={intent.recipient_wallet ?? ''} data-handle={handle ?? ''}>
+        <div class="card">
+          <div class="recipient is-big">
+            {recipient?.avatar_url ? <img class="av" src={recipient.avatar_url} alt="" width="56" height="56" /> : <span class="av av-letter" style="width:56px;height:56px">{(handle ?? '?').slice(0, 1).toUpperCase()}</span>}
+            <div>
+              <b>{recipient?.x_name ?? (handle ? `@${handle}` : 'Unknown')}</b>
+              <span>{handle ? `@${handle}` : ''}{intent.recipient_wallet ? ` · ${intent.recipient_wallet.slice(0, 6)}…${intent.recipient_wallet.slice(-4)}` : ''}</span>
+            </div>
+          </div>
+          <dl class="kv" style="margin-top:20px">
+            <div><dt>Amount</dt><dd>{amountText} USDG</dd></div>
+            <div><dt>Network</dt><dd data-chain-name>Robinhood Chain</dd></div>
+            <div><dt>Status</dt><dd data-status-word>{intent.status}</dd></div>
+            {intent.tx_hash && <div><dt>Transaction</dt><dd data-tx-link>{intent.tx_hash}</dd></div>}
+          </dl>
+
+          <div class="form-stack" style="margin-top:22px">
+            <p class="notice" data-state-line hidden></p>
+            <button class="btn btn-primary btn-lg btn-block" type="button" data-pay-btn>Loading…</button>
+            <p class="help" data-drip-line></p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h2>Before you sign</h2></div>
+          <ul class="rules">
+            <li><div><b>The money goes straight to @{handle ?? '…'}</b><span>From your wallet to the wallet that belongs to their X account. TweetSend never holds it.</span></div></li>
+            <li><div><b>Nothing happens until you confirm</b><span>Typing the reply on X only made this page. Close it and nothing moves.</span></div></li>
+            <li><div><b>This link is single-use</b><span>Once it is paid it stays paid; a second visit shows the receipt.</span></div></li>
+          </ul>
+        </div>
+      </div>
+    )}
+
+    <div class="sheet" data-sheet="pay" hidden>
+      <div class="scrim" data-close></div>
+      <div class="box">
+        <h2>Confirm in your wallet</h2>
+        <dl class="kv">
+          <div><dt>To</dt><dd data-r-to>—</dd></div>
+          <div><dt>Amount</dt><dd data-r-amount>—</dd></div>
+          <div><dt>Their wallet</dt><dd class="mono" data-r-wallet>—</dd></div>
+        </dl>
+        <p class="notice" data-sheet-note hidden></p>
+        <p class="notice is-bad" data-sheet-err hidden></p>
+        <div class="actions">
+          <button class="btn btn-secondary" type="button" data-close>Back</button>
+          <button class="btn btn-primary" type="button" data-confirm>Send</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" data-sheet="done" hidden>
+      <div class="scrim" data-close></div>
+      <div class="box">
+        <h2>Sent</h2>
+        <p data-done-line>—</p>
+        <dl class="kv">
+          <div><dt>USDG transfer</dt><dd data-done-hash>—</dd></div>
+          <div data-done-eth-row hidden><dt>Gas drip</dt><dd data-done-eth>—</dd></div>
+        </dl>
+        <div class="actions">
+          <a class="btn btn-primary" href="/app">See activity</a>
+        </div>
+      </div>
+    </div>
+  </Shell>
+</Layout>
+
+<script>
+  import { bootPay } from '../../scripts/app/pay';
+  bootPay();
+</script>

@@ -1,0 +1,17 @@
+node_modules
+dist
+.astro
+.env
+.env.*
+!.env.example
+.vercel
+.DS_Store
+contracts/out
+contracts/cache
+contracts/broadcast
+.keys
+.env.faucet
+.env*
+.data
+.verify/keys
+.verify/shots

@@ -1,0 +1,100 @@
+---
+/**
+ * The app chrome: an inset floating header bar over a centred workspace.
+ *
+ * The bar language is Rulepad's, the face is the Sendly app's (Gilroy, navy
+ * on light blue, one blue accent). Privy portals the identity chip into
+ * [data-privy-chip]; before it mounts that slot is empty rather than showing
+ * a control that claims a connection.
+ */
+import { PrivyApp } from '../../app/privy';
+import Icon from '../Icon.astro';
+
+interface Props {
+  title: string;
+  sub?: string;
+  active: 'activity' | 'send' | 'claims' | 'settings' | 'pay' | 'none';
+}
+const { title, sub, active } = Astro.props;
+
+const links = [
+  { href: '/app', label: 'Activity', key: 'activity', icon: 'clock-counter-clockwise' },
+  { href: '/app/send', label: 'Send', key: 'send', icon: 'paper-plane-tilt' },
+  { href: '/app/claims', label: 'Claims', key: 'claims', icon: 'hand-coins' },
+  { href: '/app/settings', label: 'Settings', key: 'settings', icon: 'gear' },
+];
+---
+
+<div class="app-body">
+  <div class="wrap appbar-wrap">
+    <div class="appbar">
+      <a class="brand" href="/" aria-label="TweetSend home">
+        <span class="mark"><Icon name="at" size={26} /></span>
+        <b>TweetSend</b>
+      </a>
+      <nav aria-label="App">
+        {links.map((l) => (
+          <a href={l.href} class:list={[active === l.key && 'is-on']} aria-current={active === l.key ? 'page' : undefined}>
+            <Icon name={l.icon} size={17} />
+            <span>{l.label}</span>
+          </a>
+        ))}
+      </nav>
+      <div class="bar-actions">
+        <div data-privy-chip></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="wrap workspace" id="main">
+    <div class="notice is-warn" data-xlogin-off hidden>
+      <b>Sign in with X is not switched on in the Privy app yet.</b>
+      Until it is, sign-in here is email or wallet, and money cannot be addressed to an @handle.
+      Turn it on in the Privy dashboard → Login methods → Twitter (X).
+    </div>
+    <div class="topbar">
+      <div>
+        <h1>{title}</h1>
+        {sub && <p class="sub">{sub}</p>}
+      </div>
+      <div class="topbar-actions">
+        <slot name="actions" />
+      </div>
+    </div>
+    <slot />
+  </main>
+</div>
+
+<PrivyApp client:only="react" />
+
+<script is:inline>
+  /* If the wallet island never publishes a bridge, publish a failed one so
+     buttons can say what went wrong instead of sitting on "Loading…". */
+  (function () {
+    setTimeout(function () {
+      if (window.__tweetsendPrivy) return;
+      var short = 'Sign-in failed to load — reload';
+      window.__tweetsendPrivy = {
+        configured: false, ready: true, authenticated: false, xLogin: false, x: null,
+        address: null, signer: null, email: null, chainId: null, embedded: false,
+        provider: null, switchChain: null, accessToken: null, identityToken: null,
+        reason: short, login: function () { location.reload(); }, logout: function () {}, linkX: null,
+      };
+      var host = document.querySelector('[data-privy-chip]');
+      if (host && !host.firstChild) {
+        var btn = document.createElement('button');
+        btn.className = 'chip is-off';
+        btn.type = 'button';
+        btn.addEventListener('click', function () { location.reload(); });
+        var dot = document.createElement('span');
+        dot.className = 'dot';
+        var label = document.createElement('span');
+        label.textContent = short;
+        btn.appendChild(dot);
+        btn.appendChild(label);
+        host.appendChild(btn);
+      }
+      window.dispatchEvent(new Event('tweetsend:wallet'));
+    }, 8000);
+  })();
+</script>

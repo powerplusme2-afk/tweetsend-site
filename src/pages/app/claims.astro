@@ -1,0 +1,37 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Shell from '../../components/app/Shell.astro';
+import '../../styles/app.css';
+export const prerender = true;
+---
+
+<Layout title="Claims — TweetSend">
+  <Shell title="Claims" sub="Money sent to your X account. It is already in your wallet — signing in was the claim." active="claims">
+    <div class="notice is-bad" data-error hidden></div>
+
+    <div class="card" data-signed-out>
+      <div class="state" data-signin-state></div>
+    </div>
+
+    <div data-live hidden>
+      <div class="notice" data-no-x hidden>
+        Your sign-in has no X account linked, so nothing can be addressed to you yet.
+        <button class="btn btn-secondary btn-sm" type="button" data-link-x hidden>Link X</button>
+      </div>
+      <div class="notice is-good" data-claimed-now hidden></div>
+      <div class="card">
+        <div class="card-head"><h2>Sent to you</h2></div>
+        <ul class="rowlist" data-rows></ul>
+        <div class="state" data-empty hidden>
+          <h2>Nothing waiting for <span data-me-handle>you</span>.</h2>
+          <p>When someone replies <code>@TweetSend $10</code> under one of your tweets and pays, it shows up here.</p>
+        </div>
+      </div>
+    </div>
+  </Shell>
+</Layout>
+
+<script>
+  import { bootClaims } from '../../scripts/app/claims';
+  bootClaims();
+</script>

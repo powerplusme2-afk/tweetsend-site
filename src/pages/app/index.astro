@@ -1,0 +1,60 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Shell from '../../components/app/Shell.astro';
+import '../../styles/app.css';
+export const prerender = true;
+---
+
+<Layout title="Activity — TweetSend">
+  <Shell title="Activity" sub="Everything you sent and everything sent to you, newest first." active="activity">
+    <a slot="actions" class="btn btn-primary" href="/app/send">Send</a>
+
+    <div class="notice is-bad" data-error hidden></div>
+
+    <div class="card" data-signed-out>
+      <div class="state" data-signin-state></div>
+    </div>
+
+    <div data-live hidden>
+      <div class="balance card">
+        <div class="figure">
+          <span class="cap">Your TweetSend wallet</span>
+          <div class="big"><span data-balance>—</span><span class="unit">USDG</span></div>
+        </div>
+        <div class="side">
+          <div><span>Address</span><b><span data-wallet-short>—</span> <button class="btn-ghost btn btn-sm" type="button" data-copy="" data-wallet-copy aria-label="Copy address"></button></b></div>
+          <div><span>Network</span><b data-chain>—</b></div>
+          <div><span>Gas</span><b data-gas>—</b></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>Activity</h2>
+          <div class="quick" data-filters>
+            <button type="button" data-filter="all" class="is-on">All</button>
+            <button type="button" data-filter="sent">Sent</button>
+            <button type="button" data-filter="received">Received</button>
+            <button type="button" data-filter="pending">Pending</button>
+            <button type="button" data-filter="paid">Waiting to be claimed</button>
+          </div>
+        </div>
+        <ul class="rowlist" data-rows></ul>
+        <div class="state" data-empty hidden>
+          <h2>Nothing yet.</h2>
+          <p>Reply <code>@TweetSend $5</code> under any tweet to send your first payment — or use <a href="/app/send">Send</a> with an @handle.</p>
+          <div class="tweet-mock" aria-hidden="true">
+            <div class="tw"><b>@bob</b><span>Just shipped the thing. 🚀</span></div>
+            <div class="tw is-reply"><b>@you</b><span>@TweetSend $5</span></div>
+            <div class="tw is-bot"><b>@TweetSend</b><span>Ready — confirm your $5 to @bob: tweetsend…/pay/k7f3q</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </Shell>
+</Layout>
+
+<script>
+  import { bootActivity } from '../../scripts/app/activity';
+  bootActivity();
+</script>

@@ -1,0 +1,62 @@
+---
+/**
+ * Phosphor icon, inlined at build time.
+ *
+ * The SVG file ships inside `@phosphor-icons/core` (MIT) and is read off disk
+ * while the page is being generated, so the browser never requests an icon
+ * font, a sprite sheet or a CDN. Regular weight only, `currentColor` only —
+ * one family, one weight, everywhere in the app.
+ *
+ * A name that does not exist throws and fails the build on purpose: a missing
+ * icon must never ship as an empty box.
+ */
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { join } from 'node:path';
+
+interface Props {
+  /** Phosphor icon name, kebab-case, e.g. `paper-plane-tilt`. */
+  name: string;
+  size?: number;
+  class?: string;
+}
+const { name, size = 20, class: className = '' } = Astro.props;
+
+/* Resolved through Node's own resolver rather than a path relative to this
+   file: during `astro build` this component runs from inside `dist/`, where a
+   relative `../../node_modules` does not exist. */
+const ASSETS = 'node_modules/@phosphor-icons/core/assets/regular';
+const require = createRequire(import.meta.url);
+
+let raw: string;
+try {
+  let file: string;
+  try {
+    file = require.resolve(`@phosphor-icons/core/assets/regular/${name}.svg`);
+  } catch {
+    file = join(process.cwd(), ASSETS, `${name}.svg`);
+  }
+  raw = readFileSync(file, 'utf8');
+} catch {
+  throw new Error(
+    `Icon "${name}" not found in @phosphor-icons/core/assets/regular. ` +
+      'Check the name against the package — a missing icon must fail the build, ' +
+      'never ship as an empty box.',
+  );
+}
+
+/* Keep the path data; replace the wrapper so size, class and a11y are ours. */
+const viewBox = /viewBox="([^"]+)"/.exec(raw)?.[1] ?? '0 0 256 256';
+const inner = raw.replace(/^[\s\S]*?<svg[^>]*>/, '').replace(/<\/svg>\s*$/, '');
+---
+
+<svg
+  class={className}
+  width={size}
+  height={size}
+  viewBox={viewBox}
+  fill="currentColor"
+  aria-hidden="true"
+  focusable="false"
+  set:html={inner}
+/>

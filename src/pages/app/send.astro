@@ -1,0 +1,110 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Shell from '../../components/app/Shell.astro';
+import Icon from '../../components/Icon.astro';
+import '../../styles/app.css';
+export const prerender = true;
+---
+
+<Layout title="Send — TweetSend">
+  <Shell title="Send" sub="An @handle and an amount. No address, no network to pick." active="send">
+    <div class="notice is-bad" data-error hidden></div>
+
+    <div class="card" data-signed-out>
+      <div class="state" data-signin-state></div>
+    </div>
+
+    <div class="grid-2" data-live hidden>
+      <div class="card">
+        <div class="form-stack">
+          <div class="field">
+            <label for="to">To</label>
+            <div class="amount-box">
+              <span class="unit" style="order:-1">@</span>
+              <input id="to" name="to" type="text" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="handle" data-to maxlength="15" />
+            </div>
+            <p class="help" data-to-line>Type an X handle. The money goes to the wallet that belongs to that account.</p>
+            <div class="recipient" data-recipient hidden></div>
+          </div>
+
+          <div class="field">
+            <label for="amount">Amount</label>
+            <div class="amount-box">
+              <input id="amount" name="amount" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" data-amount />
+              <span class="unit">USDG</span>
+            </div>
+            <p class="help" data-balance-line>Reading your balance…</p>
+            <div class="quick" data-quick>
+              <button type="button" data-fill="5">5</button>
+              <button type="button" data-fill="25">25</button>
+              <button type="button" data-fill="100">100</button>
+            </div>
+          </div>
+
+          <button class="btn btn-primary btn-lg btn-block" type="button" data-review>Review</button>
+          <button class="btn btn-secondary btn-block" type="button" data-mint hidden>Get 100 test USDG (testnet)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h2>What happens</h2></div>
+        <ul class="rules">
+          <li>
+            <Icon name="at" size={20} />
+            <div><b>Addressed to a handle</b><span>TweetSend looks up the X account and pays the wallet that belongs to it — made for them if they have never signed in.</span></div>
+          </li>
+          <li>
+            <Icon name="coins" size={20} />
+            <div><b>USDG on Robinhood Chain</b><span data-drip-line>One transfer from your wallet to theirs. Nothing passes through TweetSend.</span></div>
+          </li>
+          <li>
+            <Icon name="seal-check" size={20} />
+            <div><b>They claim by being themselves</b><span>The recipient signs in with the same X account and the money is already there.</span></div>
+          </li>
+        </ul>
+        <p class="help" style="margin-top:18px" data-limits-line>Sends are $1–$500, up to $2,000 a day.</p>
+      </div>
+    </div>
+
+    <div class="sheet" data-sheet="review" hidden>
+      <div class="scrim" data-close></div>
+      <div class="box">
+        <h2>Check this before you sign</h2>
+        <dl class="kv">
+          <div><dt>To</dt><dd data-r-to>—</dd></div>
+          <div><dt>Amount</dt><dd data-r-amount>—</dd></div>
+          <div><dt>Their wallet</dt><dd class="mono" data-r-wallet>—</dd></div>
+          <div><dt>Chain</dt><dd data-r-chain>—</dd></div>
+          <div data-r-drip-row hidden><dt>Gas drip</dt><dd data-r-drip>—</dd></div>
+        </dl>
+        <p class="notice" data-sheet-note hidden></p>
+        <p class="notice is-bad" data-sheet-err hidden></p>
+        <div class="actions">
+          <button class="btn btn-secondary" type="button" data-close>Back</button>
+          <button class="btn btn-primary" type="button" data-confirm>Send</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" data-sheet="done" hidden>
+      <div class="scrim" data-close></div>
+      <div class="box">
+        <h2>Sent</h2>
+        <p data-done-line>—</p>
+        <dl class="kv">
+          <div><dt>USDG transfer</dt><dd data-done-hash>—</dd></div>
+          <div data-done-eth-row hidden><dt>Gas drip</dt><dd data-done-eth>—</dd></div>
+        </dl>
+        <div class="actions">
+          <a class="btn btn-secondary" href="/app">See activity</a>
+          <button class="btn btn-primary" type="button" data-close data-send-again>Send another</button>
+        </div>
+      </div>
+    </div>
+  </Shell>
+</Layout>
+
+<script>
+  import { bootSend } from '../../scripts/app/send';
+  bootSend();
+</script>

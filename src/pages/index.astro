@@ -1,0 +1,68 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Icon from '../components/Icon.astro';
+import '../styles/app.css';
+export const prerender = true;
+---
+
+<Layout>
+  <div class="app-body">
+    <div class="wrap appbar-wrap">
+      <div class="appbar">
+        <a class="brand" href="/" aria-label="TweetSend home">
+          <span class="mark"><Icon name="at" size={26} /></span>
+          <b>TweetSend</b>
+        </a>
+        <nav aria-label="Site">
+          <a href="/#how">How it works</a>
+          <a href="/#docs">Command</a>
+        </nav>
+        <div class="bar-actions">
+          <a class="btn btn-primary btn-sm" href="/app">Open the app</a>
+        </div>
+      </div>
+    </div>
+
+    <main class="wrap workspace" id="main">
+      <section class="landing-hero">
+        <span class="eyebrow">Payments on X</span>
+        <h1>Send crypto directly under a tweet.</h1>
+        <p class="lede">No wallet address. No copy-paste. Reply <code>@TweetSend</code> and an amount, and the money goes to the person who wrote the tweet — in USDG on Robinhood Chain, to a wallet that is theirs the moment they sign in with X.</p>
+        <div class="actions">
+          <a class="btn btn-primary btn-lg" href="/app">Sign in with X</a>
+          <a class="btn btn-secondary btn-lg" href="#how">See how it works</a>
+        </div>
+        <div class="tweet-mock landing-thread" aria-label="Example thread">
+          <div class="tw"><b>@bob</b><span>Shipped the new release tonight. Two years of work.</span></div>
+          <div class="tw is-reply"><b>@alice</b><span>@TweetSend $25</span></div>
+          <div class="tw is-bot"><b>@TweetSend</b><span>Ready — confirm your $25 to @bob: tweetsend…/pay/k7f3q</span></div>
+          <div class="tw is-bot"><b>@TweetSend</b><span>$25 sent to @bob.</span></div>
+        </div>
+      </section>
+
+      <section id="how" class="landing-steps">
+        <div class="card"><span class="n">1</span><b>Reply to their tweet</b><span><code>@TweetSend $25</code>. That is the whole command.</span></div>
+        <div class="card"><span class="n">2</span><b>Confirm</b><span>The bot answers with a link. Sign in with X, pick a wallet, approve. Nothing moves until you do.</span></div>
+        <div class="card"><span class="n">3</span><b>They claim by being themselves</b><span>The recipient signs in with the same X account and the money is already in a wallet that is theirs.</span></div>
+      </section>
+
+      <section id="docs" class="card" style="margin-top:32px">
+        <div class="card-head"><h2>The command</h2></div>
+        <ul class="rules">
+          <li><Icon name="at" size={20} /><div><b>@TweetSend $25 · @TweetSend 25 · @TweetSend $25.50</b><span>Any of these, as a reply under the tweet you want to pay for. One send per reply.</span></div></li>
+          <li><Icon name="warning" size={20} /><div><b>Ignored</b><span>Anything without a number, amounts outside $1–$500, replies to the bot itself, two amounts in one reply.</span></div></li>
+          <li><Icon name="seal-check" size={20} /><div><b>Not custody</b><span>TweetSend never holds your money. Payments go straight from your wallet to the recipient's on Robinhood Chain.</span></div></li>
+          <li><Icon name="hourglass" size={20} /><div><b>Typos are safe</b><span>Nothing happens until you confirm on the site. An unconfirmed link expires after 24 hours.</span></div></li>
+        </ul>
+      </section>
+
+      <footer class="landing-foot">
+        <span>TweetSend · bot @TweetSend · automated account</span>
+        <span>Robinhood Chain</span>
+        <span class="mono">Contract address · none — no contract, direct transfers</span>
+        <a href="/app">App</a>
+        <span>Follow on X — TBA</span>
+      </footer>
+    </main>
+  </div>
+</Layout>

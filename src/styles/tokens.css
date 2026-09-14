@@ -1,0 +1,106 @@
+/* ============================================================================
+   Sendly design tokens
+   ----------------------------------------------------------------------------
+   One accent on white. The accent is a violet-indigo — deliberately neither
+   Stakepad's orange nor Rulepad's green, and not the "fintech blue" every
+   payment app defaults to. The neutrals carry the same violet bias (hue ~275,
+   very low chroma) so a grey next to the accent never reads as muddy brown.
+
+   Light theme only. There is no dark ramp here because there is no dark
+   theme: a money app that changes its own ground under a number is one more
+   thing to get wrong, and the product is one screen deep.
+   ========================================================================== */
+
+:root {
+  /* ---- Accent ramp ------------------------------------------------------
+     Anchored on --a-60, the fill of every primary button. Each step below it
+     is a tint used as a ground; each step above is used as ink on a tint. */
+  --a-05: #eef6ff;
+  --a-10: #dcedff;
+  --a-20: #badeff;
+  --a-30: #8fc7ff;
+  --a-40: #5eaeff;
+  --a-50: #47a3ff;
+  --a-60: #2e96ff; /* primary fill — the site button blue */
+  --a-70: #1f7de0;
+  --a-80: #185fa8;
+  --a-90: #13426f;
+
+  /* ---- Neutrals (violet-biased, H275 C~.006) --------------------------- */
+  --n-00: #ffffff;
+  --n-02: #eaf4ff;
+  --n-05: #f1f7fd;
+  --n-10: #e3eef8;
+  --n-20: #d3e2f0;
+  --n-30: #b7cadd;
+  --n-40: #8ea3ba;
+  --n-50: #6b8199;
+  --n-60: #4f6580;
+  --n-70: #3b526d;
+  --n-80: #2a4a70;
+  --n-90: #1a4670;
+  --n-95: #13426f;
+
+  /* ---- Status — used for failure and warning only, never as decoration -- */
+  --c-red: #c8283c;
+  --c-red-bg: #fdf1f2;
+  --c-amber: #9a6400;
+  --c-amber-bg: #fdf5e6;
+
+  /* ---- Semantic roles -------------------------------------------------- */
+  --bg-page: var(--n-02);
+  --bg-card: var(--n-00);
+  --bg-sunk: var(--n-05);
+  --bg-accent: var(--a-05);
+  --bg-accent-strong: var(--a-10);
+
+  --text-primary: var(--n-95);
+  --text-secondary: var(--n-60);
+  --text-tertiary: var(--n-50);
+  --text-accent: var(--a-70);
+  --text-inverse: var(--n-00);
+
+  --border: #13426f14;
+  --border-strong: #13426f29;
+  --border-accent: var(--a-30);
+
+  /* ---- Type ------------------------------------------------------------
+     Schibsted Grotesk (OFL) for everything that is read as words: a grotesk
+     with a real personality — single-storey g, cut terminals, tight apexes —
+     rather than another neutral UI sans. JetBrains Mono (OFL) carries every
+     number, address and hash, so amounts line up column to column. */
+  --font-sans: 'Gilroy', 'Schibsted Grotesk', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --fw-normal: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+  --fw-black: 800;
+
+  /* ---- Radii ----------------------------------------------------------- */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 16px;
+  --r-lg: 26px;
+  --r-xl: 40px;
+  --r-pill: 9999px;
+
+  /* ---- Easings --------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out-cubic: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+
+  /* ---- Shadows ---------------------------------------------------------
+     Soft and low-contrast: a card is separated from the page by a hairline
+     and a wide, weak shadow, never by a hard drop or a glow. */
+  --shadow-hair: 0 2px 0 #0000000a;
+  --shadow-card: 0 3px 0 #0000000d;
+  --shadow-bar: none;
+  --shadow-sheet: 0 24px 60px -20px #13426f40, 0 2px 8px -4px #13426f1f;
+  --shadow-accent: 0 7px 0 #9acff680;
+
+  /* ---- Layout ---------------------------------------------------------- */
+  --bar-h: 60px;
+}

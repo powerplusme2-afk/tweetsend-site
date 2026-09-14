@@ -1,0 +1,29 @@
+{
+  "_note": "Robinhood Chain only. Mainnet 4663 is where TweetSend launches; testnet 46630 is where every flow is proven first. USDG on the testnet is the permit-capable MockUSDG the Sendly contracts side shipped on 13 Sep 2026 — it has an open `mint`, so test money is free.",
+  "4663": {
+    "name": "Robinhood Chain",
+    "rpc": [
+      "https://rpc.mainnet.chain.robinhood.com",
+      "https://rpc.solidrpc.io/public/evm/4663",
+      "https://robinhood.drpc.org"
+    ],
+    "rpcLogs": ["https://rpc.mainnet.chain.robinhood.com"],
+    "explorer": "https://robinhoodchain.blockscout.com",
+    "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
+    "usdg": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+    "usdgDecimals": 6,
+    "usdgMintable": false,
+    "gasSponsored": false
+  },
+  "46630": {
+    "name": "Robinhood Chain Testnet",
+    "rpc": ["https://rpc.testnet.chain.robinhood.com"],
+    "rpcLogs": ["https://rpc.testnet.chain.robinhood.com"],
+    "explorer": "https://explorer.testnet.chain.robinhood.com",
+    "multicall3": "0xcA11bde05977b3631167028862bE2a173976CA11",
+    "usdg": "0x3292e7a61cCdc571C520dCc9287f98455fF32778",
+    "usdgDecimals": 6,
+    "usdgMintable": true,
+    "gasSponsored": true
+  }
+}
