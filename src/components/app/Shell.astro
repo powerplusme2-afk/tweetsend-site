@@ -18,8 +18,8 @@ interface Props {
 }
 const { title, sub, active } = Astro.props;
 
-/* The marketing site; its every CTA points back at /app here. */
-const SITE_URL = 'https://tweetsend-vivid.vercel.app/';
+/* The landing page, served by this same deployment at /. */
+const SITE_URL = '/';
 
 const links = [
   { href: '/app', label: 'Activity', key: 'activity' },
@@ -40,7 +40,7 @@ const links = [
       ))}
     </nav>
     <div class="grow"></div>
-    <a class="site-link" href={SITE_URL}>tweetsend-vivid.vercel.app ↗</a>
+    <a class="site-link" href={SITE_URL}>tweetsend.com ↗</a>
     {/* No `data-account` here: the Settings page owns that hook for its account list. */}
     <a class="account" href="/app/settings">
       <span class="avatar" data-avatar>T</span>

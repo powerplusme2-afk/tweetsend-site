@@ -13,11 +13,10 @@ export default defineConfig({
      static HTML exactly like the sibling apps. */
   output: 'server',
   adapter: vercel(),
-  /* This deployment is the app only. The bare domain sends the reader to the
-     marketing site (tweetsend-vivid), whose every CTA points at /app here
-     (client, 14 Sep 2026 evening — replaces the earlier "/ lands on the
-     dashboard"). */
-  redirects: { '/': 'https://tweetsend-vivid.vercel.app/' },
+  /* One deployment: the landing (vividand-mirror, synced into public/ by
+     _mirror/sync-to-app.sh) is served at / as static files; the dashboard is
+     /app; the API is /api. No redirect on / (client, 14 Sep 2026: "all in one,
+     not two deployments"). */
   /* React is here for exactly one reason: Privy ships as a React SDK and the
      sign-in is a real wallet connection. It runs on the /app* and /pay/* pages. */
   integrations: [react()],
