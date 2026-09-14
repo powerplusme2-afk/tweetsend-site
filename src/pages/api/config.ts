@@ -9,7 +9,7 @@ import type { APIRoute } from 'astro';
 import { json } from '../../server/http';
 import { APP_ID } from '../../server/env';
 import { chainId, config } from '../../app/chain';
-import { LIMITS, BOT_HANDLE } from '../../../shared/command.mjs';
+import { LIMITS, botHandle } from '../../../shared/command.mjs';
 import { privySecretPresent, getUserByXId } from '../../../shared/privy.mjs';
 import { xKeysPresent, xReadPresent, userByHandle, me } from '../../../shared/x.mjs';
 import { databaseKind } from '../../../shared/db.mjs';
@@ -59,7 +59,7 @@ export const GET: APIRoute = async ({ url }) => {
     gasSponsored: c.gasSponsored,
     usdgMintable: c.usdgMintable,
     limits: LIMITS,
-    botHandle: BOT_HANDLE,
+    botHandle: botHandle(),
     privyAppId: APP_ID,
     xLogin: await xLoginEnabled(),
     privySecret: privySecretPresent(),

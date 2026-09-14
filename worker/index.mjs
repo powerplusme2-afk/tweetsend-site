@@ -137,6 +137,8 @@ async function main() {
   }
   const sql = await getSql();
   const bot = await me();
+  /* The account the tokens belong to is the bot; nobody has to type its handle. */
+  if (!process.env.X_BOT_HANDLE) process.env.X_BOT_HANDLE = bot.handle;
   log(`bot @${bot.handle} (${bot.id}) · site ${SITE} · chain ${CHAIN}${DRY ? ' · DRY' : ''}`);
   for (;;) {
     let backoff = 0;

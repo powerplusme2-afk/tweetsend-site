@@ -16,7 +16,11 @@ export const LIMITS = Object.freeze({
   expiryHours: 24,
 });
 
-export const BOT_HANDLE = (typeof process !== 'undefined' && process.env && process.env.X_BOT_HANDLE) || 'TweetSend';
+/** The bot's handle: `X_BOT_HANDLE`, else what the worker learned from `/users/me`, else the product name. */
+export function botHandle() {
+  return (typeof process !== 'undefined' && process.env && process.env.X_BOT_HANDLE) || 'TweetSend';
+}
+export const BOT_HANDLE = botHandle();
 
 /**
  * Finds the amount in a reply such as `@TweetSend $25`, `@TweetSend 25`,
@@ -29,12 +33,12 @@ export const BOT_HANDLE = (typeof process !== 'undefined' && process.env && proc
  *   'too-small' / 'too-large' — outside LIMITS
  *   'multiple'    — more than one amount; ambiguous, so nothing happens
  */
-export function parseCommand(text, botHandle = BOT_HANDLE) {
+export function parseCommand(text, handle = botHandle()) {
   const t = String(text ?? '');
-  const mention = new RegExp(`@${escapeRe(botHandle)}\\b`, 'i');
+  const mention = new RegExp(`@${escapeRe(handle)}\\b`, 'i');
   const at = t.search(mention);
   if (at < 0) return { ok: false, reason: 'no-mention' };
-  const after = t.slice(at + botHandle.length + 1);
+  const after = t.slice(at + handle.length + 1);
   const amounts = [];
   const re = /(?:^|[\s(])\$?\s?(\d{1,6}(?:[.,]\d{1,2})?)(?=$|[\s).!?,;:])/g;
   let m;
@@ -69,7 +73,7 @@ export const MESSAGES = Object.freeze({
   /** Paid, recipient has never signed in. */
   waiting: ({ amount, to, site }) =>
     `${usd(amount)} is waiting for @${to}. Claim it by signing in with X at ${site}.`,
-  noAmount: () => `Tell me how much: reply with @${BOT_HANDLE} and an amount, like $10.`,
+  noAmount: () => `Tell me how much: reply with @${botHandle()} and an amount, like $10.`,
   limits: () => `Sends are ${usd(LIMITS.minUsd)}–${usd(LIMITS.maxUsd)} for now.`,
   self: () => `You can't send to yourself.`,
 });
