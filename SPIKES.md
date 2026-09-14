@@ -53,3 +53,10 @@ NOT RUN: a real mention. Next: from any X account, reply `@tweetsendcc $5` under
 - GitHub cron: 0 scheduled runs of tick.yml between 12:50Z and 16:40Z (5 dispatches only). The bot answers nothing on its own right now. Cron expression changed to re-register; relay.mjs also ticks every 5 min.
 - Built: shared/stream.mjs (line splitter + reconnecting reader), worker/index.mjs --stream, worker/relay.mjs (needs X_BEARER_TOKEN + TICK_TOKEN only; forwards events to /api/x/event), .github/workflows/relay.yml (self-renewing 350-min job; private repo = 2 000 free minutes a month ≈ 1.4 days, public = uncapped).
 - Not yet proven: an event flowing stream → relay → /api/x/event → reply. Needs the relay running somewhere with the read token.
+
+## 14 Sep 2026, 23:00 IST — the clock is a Vercel Workflow
+
+- `src/workflows/poller.ts`: tick → sleep 5 min → repeat, lease in worker_state, hand-over to a new run daily. `/api/poller` start|stop|status; `poller.yml` is the button.
+- First run stayed `pending` forever: with a local `vercel build` the Astro integration only emits the Vercel queue-triggered functions when `VERCEL_DEPLOYMENT_ID` is set. Build with `VERCEL_DEPLOYMENT_ID=local npx vercel build --prod --yes` → `.vercel/output/functions/.well-known/workflow/v1/{flow,step}.func` with `experimentalTriggers`. Then the first tick ran 1.8 s after start (17:31:50Z).
+- Budget: Hobby 50 000 workflow events/month; ~5 per tick+sleep → 5-min cadence ≈ 43 000. Do not go faster on Hobby.
+- Stale run wrun_01M2GF9CN3XQ40VZ55WJE6XHQC (old deployment) never started; cancelled/ignored.
