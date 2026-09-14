@@ -147,12 +147,13 @@ async function announcePaid(ctx) {
  * itself up once; otherwise `/users/me` is asked (one cheap call).
  * Returns a summary that names no key and no wallet secret.
  */
-export async function runTick({ dry = false, log = () => {}, bot = null } = {}) {
+export async function runTick({ dry = false, log = () => {}, bot = null, since: sinceOverride } = {}) {
   const ctx = { dry, log, wouldPost: [] };
   const sql = await getSql();
   const who = bot ?? (await me());
   if (!process.env.X_BOT_HANDLE) process.env.X_BOT_HANDLE = who.handle;
-  const since = await cursor(sql);
+  /* `since` given by the caller rewinds the poll (e.g. after a dry run looked at a mention); '' means from the start. */
+  const since = sinceOverride !== undefined ? (sinceOverride || null) : await cursor(sql);
   const { mentions: list, newestId } = await mentions(who.id, since);
   log(`mentions since ${since ?? 'start'}: ${list.length}`);
   const results = [];
@@ -167,7 +168,8 @@ export async function runTick({ dry = false, log = () => {}, bot = null } = {}) 
       results.push({ tweetId: m.id, author: m.authorHandle, failed: e.message });
     }
   }
-  if (newestId) await cursor(sql, newestId);
+  /* A dry run looks but does not move the cursor, so the next real tick still answers. */
+  if (newestId && !dry) await cursor(sql, newestId);
   const announced = await announcePaid(ctx);
   const expired = await expireStale();
   if (announced || expired) log(`announced ${announced}, expired ${expired}`);

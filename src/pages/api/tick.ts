@@ -32,6 +32,7 @@ export const GET: APIRoute = ({ request, url }) =>
     if (!privySecretPresent()) return fail('PRIVY_APP_SECRET is not set.', 503);
     const dry = url.searchParams.get('dry') === '1';
     const lines: string[] = [];
-    const out = await runTick({ dry, log: (...a: unknown[]) => lines.push(a.map(String).join(' ')) });
+    const since = url.searchParams.has('since') ? (url.searchParams.get('since') ?? '') : undefined;
+    const out = await runTick({ dry, since, log: (...a: unknown[]) => lines.push(a.map(String).join(' ')) });
     return json({ ...out, log: lines });
   });

@@ -11,7 +11,7 @@ import { APP_ID } from '../../server/env';
 import { chainId, config } from '../../app/chain';
 import { LIMITS, botHandle } from '../../../shared/command.mjs';
 import { privySecretPresent, getUserByXId } from '../../../shared/privy.mjs';
-import { xKeysPresent, xReadPresent, userByHandle, me, accessLevel } from '../../../shared/x.mjs';
+import { xKeysPresent, xReadPresent, userByHandle, me, accessLevel, mentionsDiag, timelineDiag, tweetDiag } from '../../../shared/x.mjs';
 import { databaseKind } from '../../../shared/db.mjs';
 
 export const prerender = false;
@@ -51,6 +51,9 @@ async function probe(): Promise<{ x: Record<string, unknown>; bot: Record<string
 export const GET: APIRoute = async ({ url }) => {
   const c = config();
   if (url.searchParams.get('probe') === '1') return json(await probe());
+  if (url.searchParams.get('probe') === 'mentions') return json(await mentionsDiag(await me()));
+  if (url.searchParams.get('probe') === 'tweet') return json(await tweetDiag(url.searchParams.get('id') ?? '', await me()));
+  if (url.searchParams.get('probe') === 'tweets') return json(await timelineDiag(url.searchParams.get('handle') ?? '', await me()));
   return json({
     chainId: chainId(),
     chainName: c.name,

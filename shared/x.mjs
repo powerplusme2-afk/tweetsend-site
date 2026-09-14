@@ -93,6 +93,65 @@ async function get(path, params) {
 }
 
 /**
+ * Diagnostic for /api/config?probe=mentions: what X returns for the bot's
+ * mention timeline (raw meta + ids, app-only and as the bot) and for a
+ * recent search of its handle — the two ways a mention can be found. Counts
+ * and ids only; no text, no key.
+ */
+export async function timelineDiag(handle, bot) {
+  const u = await call('GET', `/users/by/username/${encodeURIComponent(handle)}`, { params: { 'user.fields': 'created_at,protected,public_metrics' } });
+  const id = u?.data?.id;
+  if (!id) return { found: false };
+  const j = await call('GET', `/users/${id}/tweets`, { params: { max_results: 5, 'tweet.fields': 'created_at,in_reply_to_user_id,entities' } });
+  return {
+    found: true, id, createdAt: u.data.created_at, protected: u.data.protected, metrics: u.data.public_metrics,
+    tweets: (j?.data ?? []).map((t) => ({
+      id: t.id, at: t.created_at, replyTo: t.in_reply_to_user_id ?? null,
+      mentionsBot: (t.entities?.mentions ?? []).some((m) => m.username?.toLowerCase() === bot.handle.toLowerCase()),
+      mentionIds: (t.entities?.mentions ?? []).map((m) => `${m.username}:${m.id}`),
+    })),
+    meta: j?.meta ?? null,
+  };
+}
+
+/** One tweet by id, app-only and as the bot: found or the error X gives (visibility-limited posts come back as errors). */
+export async function tweetDiag(id, bot) {
+  const out = {};
+  for (const [name, user] of [['appOnly', false], ['asBot', true]]) {
+    try {
+      const j = await call('GET', `/tweets/${id}`, { params: { 'tweet.fields': 'author_id,created_at,entities,in_reply_to_user_id' }, user });
+      const t = j?.data;
+      out[name] = t
+        ? { found: true, at: t.created_at, author: t.author_id, replyTo: t.in_reply_to_user_id ?? null, mentionsBot: (t.entities?.mentions ?? []).some((m) => m.username?.toLowerCase() === bot.handle.toLowerCase()) }
+        : { found: false, errors: j?.errors ?? null };
+    } catch (e) {
+      out[name] = { error: e.status ?? e.message, body: e.body?.errors ?? e.body ?? null };
+    }
+  }
+  return out;
+}
+
+export async function mentionsDiag(bot) {
+  const fields = { max_results: 10, 'tweet.fields': 'author_id,created_at' };
+  const out = {};
+  for (const [name, user] of [['appOnly', false], ['asBot', true]]) {
+    try {
+      const j = await call('GET', `/users/${bot.id}/mentions`, { params: fields, user });
+      out[name] = { count: j?.data?.length ?? 0, meta: j?.meta ?? null, ids: (j?.data ?? []).map((t) => t.id) };
+    } catch (e) {
+      out[name] = { error: e.status ?? e.message };
+    }
+  }
+  try {
+    const j = await call('GET', '/tweets/search/recent', { params: { query: `@${bot.handle}`, max_results: 10, 'tweet.fields': 'author_id,created_at' } });
+    out.search = { count: j?.data?.length ?? 0, meta: j?.meta ?? null, ids: (j?.data ?? []).map((t) => `${t.id}:${t.author_id}:${t.created_at}`) };
+  } catch (e) {
+    out.search = { error: e.status ?? e.message };
+  }
+  return out;
+}
+
+/**
  * One request; a non-2xx becomes an error that names the call, never a key.
  * Bearer (app-only) by default; `user: true` signs it as the bot account with
  * OAuth 1.0a instead — what X demands for a subscription to the bot's own
