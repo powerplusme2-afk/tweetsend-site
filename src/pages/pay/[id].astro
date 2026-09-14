@@ -14,8 +14,16 @@ import { getIntent, userByXId } from '../../../shared/intents.mjs';
 export const prerender = false;
 
 const id = Astro.params.id ?? '';
-const intent = await getIntent(id);
-const recipient = intent?.recipient_x_id ? await userByXId(intent.recipient_x_id) : null;
+/* A database that is not connected yet is a stated fact, not a crash. */
+let dbError: string | null = null;
+let intent: Awaited<ReturnType<typeof getIntent>> = null;
+let recipient: Awaited<ReturnType<typeof userByXId>> = null;
+try {
+  intent = await getIntent(id);
+  recipient = intent?.recipient_x_id ? await userByXId(intent.recipient_x_id) : null;
+} catch (e) {
+  dbError = e instanceof Error ? e.message : String(e);
+}
 const handle = recipient?.x_handle ?? intent?.recipient_handle ?? null;
 const amount = intent ? Number(intent.amount_usd) : 0;
 const amountText = `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -26,7 +34,13 @@ const title = intent ? `Send ${amountText} to @${handle ?? '…'} — TweetSend`
   <Shell title={intent ? `${amountText} to @${handle ?? '…'}` : 'No such send'} sub={intent ? (intent.source === 'x' ? `From your reply on X${intent.sender_handle ? ` as @${intent.sender_handle}` : ''}.` : 'Started on the site.') : undefined} active="pay">
     <div class="notice is-bad" data-error hidden></div>
 
-    {!intent ? (
+    {dbError ? (
+      <div class="card"><div class="state is-bad">
+        <h2>TweetSend's database is not connected on this server.</h2>
+        <p>Nothing can be read until <code>DATABASE_URL</code> is set. This is a setup step, not a problem with your link.</p>
+        <p class="why">{dbError}</p>
+      </div></div>
+    ) : !intent ? (
       <div class="card"><div class="state">
         <h2>This link does not point to a send.</h2>
         <p>Check the link in the bot's reply, or start a new one from <a href="/app/send">Send</a>.</p>
