@@ -448,6 +448,22 @@ export async function installWebhook({ url, botUserId }) {
 }
 
 /** Removes the mention subscription(s) and the webhook for `url`. */
+/**
+ * X keeps every event it tried to deliver for a while; a replay job pushes
+ * them to the webhook again. Dates are UTC `yyyymmddhhmm`, inclusive.
+ * App-only auth, like the webhook itself.
+ */
+export async function replayWebhook({ url, minutes = 60 }) {
+  const hooks = (await hookStatus()).webhooks;
+  const hook = hooks.find((h) => h.url === url);
+  if (!hook) return { replayed: false, reason: 'no webhook for this url' };
+  const stamp = (d) => d.toISOString().replace(/[-T:]/g, '').slice(0, 12);
+  const to = new Date(Date.now() - 60_000);
+  const from = new Date(Date.now() - minutes * 60_000);
+  const j = await call('POST', '/webhooks/replay', { body: { webhook_id: hook.id, from_date: stamp(from), to_date: stamp(to) } });
+  return { replayed: true, webhook: hook.id, from: stamp(from), to: stamp(to), job: j?.data ?? j };
+}
+
 export async function uninstallWebhook({ url }) {
   const st = await hookStatus();
   const hook = st.webhooks.find((w) => w.url === url);

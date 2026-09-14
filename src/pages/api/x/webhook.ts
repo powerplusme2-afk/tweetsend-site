@@ -37,7 +37,13 @@ export const POST: APIRoute = async ({ request }) => {
   } catch {
     return fail('The X API keys are not set on the server.', 503);
   }
-  if (!ok) return fail('bad signature', 401);
+  if (!ok) {
+    /* Logged, not silent: "did X push anything?" must be answerable. The
+       body is not kept — only its size and whether a signature came at all. */
+    const sig = request.headers.get('x-twitter-webhooks-signature');
+    waitUntil(logEvent(null, 'webhook-reject', `bad signature: header ${sig ? 'present' : 'missing'}, body ${raw.length} bytes, ua ${request.headers.get('user-agent') ?? '-'}`));
+    return fail('bad signature', 401);
+  }
   let event: unknown;
   try {
     event = JSON.parse(raw);

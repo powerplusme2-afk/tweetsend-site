@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'status | install | uninstall'
+        description: 'status | install | uninstall | replay'
         default: 'status'
 jobs:
   hooks:
