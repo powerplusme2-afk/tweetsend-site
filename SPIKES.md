@@ -31,7 +31,7 @@ NOT RUN — needs a person with an X account and the app secret:
 1. Log in on that X page and authorize. If X then says the callback is not allowed, add `https://auth.privy.io/api/v1/oauth/callback` under User authentication settings in the X developer portal.
 2. `PRIVY_APP_SECRET` in the env, then `node worker/spike1.mjs <x-numeric-id> [handle]` (exit 2 without input/secret, 3 if Privy refuses) → prints the pre-made wallet; sign in with that X account on `/app/settings` and compare the "TweetSend wallet" line. The "user by Twitter subject/username" endpoint spellings in `shared/privy.mjs` are UNVERIFIED until this runs.
 
-Note: on the live site the first sign-in will end at "database is not connected" until Neon is installed (terms acceptance pending, see README).
+Neon Postgres was installed on Vercel later the same day (`DATABASE_URL` on Production); `/api/*` and `/pay/:id` read and write for real now.
 
 ## Spike 2 — poll mentions, confirm `in_reply_to_user_id` + field spelling — HALF RUN
 
