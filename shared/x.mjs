@@ -337,7 +337,17 @@ export async function installWebhook({ url, botUserId }) {
   const before = await hookStatus();
   let hook = before.webhooks.find((w) => w.url === url);
   let madeHook = false;
+  const dropped = [];
   if (!hook) {
+    /* X allows one webhook per app. An older one of ours (same path, an
+       earlier host — the .vercel.app URL before the domain) is replaced,
+       not kept: its subscription is re-pointed at the new hook below. */
+    for (const w of before.webhooks) {
+      if (w.url.endsWith('/api/x/webhook') && w.url !== url) {
+        await call('DELETE', `/webhooks/${w.id}`);
+        dropped.push(w.url);
+      }
+    }
     const j = await call('POST', '/webhooks', { body: { url } });
     hook = { id: j.data.id, url: j.data.url, valid: j.data.valid };
     madeHook = true;
@@ -359,7 +369,7 @@ export async function installWebhook({ url, botUserId }) {
     await call('PUT', `/activity/subscriptions/${sub.id}`, { body: { webhook_id: hook.id }, user: true });
     sub.webhookId = hook.id;
   }
-  return { webhook: hook, subscription: sub, madeHook, madeSub };
+  return { webhook: hook, subscription: sub, madeHook, madeSub, dropped };
 }
 
 /** Removes the mention subscription(s) and the webhook for `url`. */
