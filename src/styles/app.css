@@ -740,7 +740,12 @@ body.on-dark {
 .sheet .scrim {
   position: absolute;
   inset: 0;
-  background: #000243cc;
+  /* Dim, not paint: a 14 Sep tester read the old navy #000243cc as "the
+     whole screen goes blue". Black at 55% with a light blur keeps the page
+     readable behind the box. */
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   cursor: pointer;
 }
 .sheet .box {

@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import vercel from '@astrojs/vercel';
+import { workflow } from 'workflow/astro';
 
 // https://astro.build/config
 export default defineConfig({
@@ -19,7 +20,9 @@ export default defineConfig({
      not two deployments"). */
   /* React is here for exactly one reason: Privy ships as a React SDK and the
      sign-in is a real wallet connection. It runs on the /app* and /pay/* pages. */
-  integrations: [react()],
+  /* Vercel Workflows runs the bot's poll on its own clock (src/workflows/poller.ts):
+     the scheduler GitHub's cron never became. */
+  integrations: [react(), workflow()],
   build: {
     format: 'directory',
   },

@@ -1,0 +1,23 @@
+# The bot's clock lives on Vercel (Workflows, src/workflows/poller.ts). This
+# only starts, stops or shows it. Nothing runs here except a curl.
+name: bot clock
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'status | start | stop'
+        default: 'status'
+jobs:
+  poller:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: ${{ github.event.inputs.action }}
+        run: |
+          A="${{ github.event.inputs.action }}"
+          if [ "$A" = "status" ]; then
+            curl -sS -w "\n%{http_code}\n" -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend.com/api/poller" | tee out.txt; grep -q "^200$" out.txt
+          else
+            curl -sS -w "\n%{http_code}\n" -X POST -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" -H "content-type: application/json" \
+              -d "{\"action\":\"$A\"}" "https://tweetsend.com/api/poller" | tee out.txt; grep -q "^200$" out.txt
+          fi
