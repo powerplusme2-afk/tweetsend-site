@@ -295,6 +295,17 @@ export async function reply(tweetId, text) {
   return json.data.id;
 }
 
+/** A plain post from the bot's own account (the webhook self-test). */
+export async function postTweet(text) {
+  const j = await call('POST', '/tweets', { body: { text }, user: true });
+  return j.data.id;
+}
+
+export async function deleteTweet(id) {
+  const j = await call('DELETE', `/tweets/${encodeURIComponent(String(id))}`, { user: true });
+  return j?.data?.deleted ?? false;
+}
+
 /* ------------------------------------------------------------ webhook */
 
 /**

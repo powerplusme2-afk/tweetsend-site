@@ -8,8 +8,11 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'status | install | uninstall | replay'
+        description: 'status | install | uninstall | replay | ping | unping'
         default: 'status'
+      id:
+        description: 'tweet id (unping only)'
+        default: ''
 jobs:
   hooks:
     runs-on: ubuntu-latest
@@ -22,5 +25,5 @@ jobs:
             curl -sS -w "\n%{http_code}\n" -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend.com/api/x/hooks" | tee out.txt; grep -q "^200$" out.txt
           else
             curl -sS -w "\n%{http_code}\n" -X POST -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" -H "content-type: application/json" \
-              -d "{\"action\":\"$A\"}" "https://tweetsend.com/api/x/hooks" | tee out.txt; grep -q "^200$" out.txt
+              -d "{\"action\":\"$A\",\"id\":\"${{ github.event.inputs.id }}\"}" "https://tweetsend.com/api/x/hooks" | tee out.txt; grep -q "^200$" out.txt
           fi

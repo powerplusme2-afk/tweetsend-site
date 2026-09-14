@@ -8,13 +8,14 @@
  *                                 post.mention.create subscription on the bot
  *   POST {"action":"uninstall"} → removes both
  *   POST {"action":"replay","minutes":60} → X re-pushes the last hour's events
+ *   POST {"action":"ping"} / {"action":"unping","id"} → bot mentions itself / deletes that post
  *
  * Ids and URLs come back; keys never do.
  */
 import type { APIRoute } from 'astro';
 import { timingSafeEqual } from 'node:crypto';
 import { json, fail, guard, body } from '../../../server/http';
-import { hookStatus, installWebhook, uninstallWebhook, replayWebhook, me, xKeysPresent } from '../../../../shared/x.mjs';
+import { hookStatus, installWebhook, uninstallWebhook, replayWebhook, postTweet, deleteTweet, me, xKeysPresent } from '../../../../shared/x.mjs';
 import { getSql } from '../../../../shared/db.mjs';
 
 export const prerender = false;
@@ -50,7 +51,7 @@ export const POST: APIRoute = ({ request }) =>
   guard(async () => {
     if (!allowed(request)) return fail('TICK_TOKEN missing or wrong.', 401);
     if (!xKeysPresent()) return fail('X keys are not all set.', 503);
-    const { action, minutes } = await body<{ action?: string; minutes?: number }>(request);
+    const { action, minutes, id } = await body<{ action?: string; minutes?: number; id?: string }>(request);
     if (action === 'install') {
       const bot = await me();
       const r = await installWebhook({ url: WEBHOOK_URL, botUserId: bot.id });
@@ -61,5 +62,14 @@ export const POST: APIRoute = ({ request }) =>
        `minutes` (default 60). Mentions already answered come back as
        `skipped: "seen"`; what matters is that `recent` fills up. */
     if (action === 'replay') return json({ url: WEBHOOK_URL, ...(await replayWebhook({ url: WEBHOOK_URL, minutes: Number(minutes) || 60 })) });
-    return fail('action must be "install", "uninstall" or "replay".', 400);
+    /* Self-test: the bot mentions itself, so X has one mention to push. The
+       bot never answers its own posts, so nothing else happens; `unping`
+       removes the post again. */
+    if (action === 'ping') {
+      const bot = await me();
+      const text = `@${bot.handle} webhook self-test ${new Date().toISOString()}`;
+      return json({ posted: await postTweet(text), text });
+    }
+    if (action === 'unping') return json({ id, deleted: id ? await deleteTweet(id) : false });
+    return fail('action must be "install", "uninstall", "replay", "ping" or "unping".', 400);
   });
