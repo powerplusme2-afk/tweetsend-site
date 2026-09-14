@@ -1,25 +1,33 @@
 ---
 import '../styles/global.css';
-interface Props { title?: string; description?: string; }
+interface Props {
+  title?: string;
+  description?: string;
+  /** The landing page is the light marketing face; product pages run the dark Rulepad-style shell. */
+  kit?: 'site' | 'app';
+}
 const {
   title = 'TweetSend — Send crypto directly under a tweet.',
   description = 'Reply @TweetSend and an amount under any tweet. The money goes to the person who wrote it, in USDG on Robinhood Chain, to a wallet that is theirs the moment they sign in with X.',
+  kit = 'site',
 } = Astro.props;
 ---
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content="#2e96ff" />
+    <meta name="theme-color" content={kit === 'app' ? '#000000' : '#2e96ff'} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {kit === 'app' && <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-400.woff2" crossorigin />}
+    {kit === 'app' && <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-mono-400.woff2" crossorigin />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
   </head>
-  <body>
+  <body class:list={[kit === 'app' && 'on-dark']}>
     <slot />
   </body>
 </html>

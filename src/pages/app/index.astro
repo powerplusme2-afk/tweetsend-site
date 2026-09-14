@@ -5,7 +5,7 @@ import '../../styles/app.css';
 export const prerender = true;
 ---
 
-<Layout title="Activity — TweetSend">
+<Layout title="Activity — TweetSend" kit="app">
   <Shell title="Activity" sub="Everything you sent and everything sent to you, newest first." active="activity">
     <a slot="actions" class="btn btn-primary" href="/app/send">Send</a>
 
@@ -21,7 +21,7 @@ export const prerender = true;
           <span class="cap">Your TweetSend wallet</span>
           <div class="big"><span data-balance>—</span><span class="unit">USDG</span></div>
         </div>
-        <div class="side">
+        <div class="facts">
           <div><span>Address</span><b><span data-wallet-short>—</span> <button class="btn-ghost btn btn-sm" type="button" data-copy="" data-wallet-copy aria-label="Copy address"></button></b></div>
           <div><span>Network</span><b data-chain>—</b></div>
           <div><span>Gas</span><b data-gas>—</b></div>

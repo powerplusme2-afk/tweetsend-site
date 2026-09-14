@@ -30,7 +30,7 @@ const amountText = `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2
 const title = intent ? `Send ${amountText} to @${handle ?? '…'} — TweetSend` : 'No such send — TweetSend';
 ---
 
-<Layout title={title}>
+<Layout title={title} kit="app">
   <Shell title={intent ? `${amountText} to @${handle ?? '…'}` : 'No such send'} sub={intent ? (intent.source === 'x' ? `From your reply on X${intent.sender_handle ? ` as @${intent.sender_handle}` : ''}.` : 'Started on the site.') : undefined} active="pay">
     <div class="notice is-bad" data-error hidden></div>
 

@@ -275,6 +275,21 @@ export function sheetBusy(root: ParentNode, busy: boolean): void {
 
 /* ------------------------------------------------------------------ common */
 
+/** The account block at the foot of the sidebar: who is signed in, from the bridge. */
+function paintAccount(): void {
+  const p = privy();
+  const on = Boolean(p?.authenticated);
+  const handle = p?.x?.handle ? `@${p.x.handle}` : null;
+  const name = on ? p?.x?.name || handle || (p?.address ? short(p.address) : null) || p?.email || 'Account' : 'Account';
+  const mail = on ? handle || p?.email || (p?.address ? short(p.address) : '') : '';
+  setText('[data-account-name]', name);
+  setText('[data-account-mail]', mail);
+  const av = el<HTMLElement>('[data-avatar]');
+  if (!av) return;
+  if (on && p?.x?.avatar) av.innerHTML = `<img src="${esc(p.x.avatar)}" alt="" width="32" height="32" />`;
+  else av.textContent = (on ? (p?.x?.handle || p?.x?.name || p?.email || '?') : 'T').slice(0, 1).toUpperCase();
+}
+
 export function bootShell(): void {
   document.querySelectorAll<HTMLElement>('[data-close]').forEach((node) => {
     node.addEventListener('click', () => closeSheets());
@@ -296,6 +311,7 @@ export function bootShell(): void {
   onWallet(() => {
     const p = privy();
     show('[data-xlogin-off]', Boolean(p && p.configured && p.ready && !p.xLogin));
+    paintAccount();
   });
 }
 

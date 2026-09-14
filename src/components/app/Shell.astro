@@ -1,14 +1,15 @@
 ---
 /**
- * The app chrome: an inset floating header bar over a centred workspace.
+ * The app chrome: the Rulepad dashboard shell, copied 1:1 (client, 14 Sep
+ * 2026) — a dark sidebar (brand, nav, account) beside the main column, and a
+ * fixed bottom bar on phones.
  *
- * The bar language is Rulepad's, the face is the Sendly app's (Gilroy, navy
- * on light blue, one blue accent). Privy portals the identity chip into
- * [data-privy-chip]; before it mounts that slot is empty rather than showing
- * a control that claims a connection.
+ * Privy portals the identity chip into [data-privy-chip]; before it mounts
+ * that slot is empty rather than showing a control that claims a connection.
+ * The account block at the foot of the sidebar is filled by bootShell from
+ * the same bridge.
  */
 import { PrivyApp } from '../../app/privy';
-import Icon from '../Icon.astro';
 
 interface Props {
   title: string;
@@ -18,35 +19,36 @@ interface Props {
 const { title, sub, active } = Astro.props;
 
 const links = [
-  { href: '/app', label: 'Activity', key: 'activity', icon: 'clock-counter-clockwise' },
-  { href: '/app/send', label: 'Send', key: 'send', icon: 'paper-plane-tilt' },
-  { href: '/app/claims', label: 'Claims', key: 'claims', icon: 'hand-coins' },
-  { href: '/app/settings', label: 'Settings', key: 'settings', icon: 'gear' },
+  { href: '/app', label: 'Activity', key: 'activity' },
+  { href: '/app/send', label: 'Send', key: 'send' },
+  { href: '/app/claims', label: 'Claims', key: 'claims' },
+  { href: '/app/settings', label: 'Settings', key: 'settings' },
 ];
 ---
 
-<div class="app-body">
-  <div class="wrap appbar-wrap">
-    <div class="appbar">
-      <a class="brand" href="/" aria-label="TweetSend home">
-        <span class="mark"><Icon name="at" size={26} /></span>
-        <b>TweetSend</b>
-      </a>
-      <nav aria-label="App">
-        {links.map((l) => (
-          <a href={l.href} class:list={[active === l.key && 'is-on']} aria-current={active === l.key ? 'page' : undefined}>
-            <Icon name={l.icon} size={17} />
-            <span>{l.label}</span>
-          </a>
-        ))}
-      </nav>
-      <div class="bar-actions">
-        <div data-privy-chip></div>
-      </div>
-    </div>
-  </div>
+<div class="shell on-dark">
+  <aside class="side">
+    <a class="brand" href="/app">
+      <img src="/brand/mark-tile.svg" alt="" width="128" height="128" />
+      <span>TweetSend</span>
+    </a>
+    <nav aria-label="App">
+      {links.map((l) => (
+        <a href={l.href} class:list={[active === l.key && 'is-on']} aria-current={active === l.key ? 'page' : undefined}>{l.label}</a>
+      ))}
+    </nav>
+    <div class="grow"></div>
+    {/* No `data-account` here: the Settings page owns that hook for its account list. */}
+    <a class="account" href="/app/settings">
+      <span class="avatar" data-avatar>T</span>
+      <span>
+        <b data-account-name>Account</b>
+        <small data-account-mail></small>
+      </span>
+    </a>
+  </aside>
 
-  <main class="wrap workspace" id="main">
+  <div class="main" id="main">
     <div class="notice is-warn" data-xlogin-off hidden>
       <b>Sign in with X is not switched on in the Privy app yet.</b>
       Until it is, sign-in here is email or wallet, and money cannot be addressed to an @handle.
@@ -59,11 +61,18 @@ const links = [
       </div>
       <div class="topbar-actions">
         <slot name="actions" />
+        <div data-privy-chip></div>
       </div>
     </div>
     <slot />
-  </main>
+  </div>
 </div>
+
+<nav class="mob-bar" aria-label="App">
+  {links.map((l) => (
+    <a href={l.href} class:list={[active === l.key && 'is-on']}>{l.label}</a>
+  ))}
+</nav>
 
 <PrivyApp client:only="react" />
 

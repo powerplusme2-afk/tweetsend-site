@@ -157,8 +157,20 @@ export async function eventsFor(intentId) {
 
 /* ---------------------------------------------------------------- users */
 
+/**
+ * The X account is the identity, the Privy id is just where it currently
+ * lives. If a row for this X id already exists under another Privy id (a
+ * pre-made user re-created, a dev fake, an app switch), that row follows the
+ * new id instead of tripping the unique index and 500-ing the sign-in.
+ */
+async function adoptRowForX(sql, privyId, xId) {
+  if (!xId) return;
+  await sql`update users set privy_id = ${privyId} where x_id = ${xId} and privy_id <> ${privyId}`;
+}
+
 export async function upsertUser(u) {
   const sql = await getSql();
+  await adoptRowForX(sql, u.privyId, u.xId ?? null);
   const rows = await sql`
     insert into users (privy_id, x_id, x_handle, x_name, avatar_url, wallet, email, last_login_at)
     values (${u.privyId}, ${u.xId ?? null}, ${u.xHandle ?? null}, ${u.xName ?? null}, ${u.avatar ?? null}, ${u.wallet ?? null}, ${u.email ?? null}, now())
@@ -190,6 +202,7 @@ export async function userByXId(xId) {
 /** Remembers a recipient the worker resolved, so the site can address them too. */
 export async function rememberX({ privyId, xId, handle, name, avatar, wallet }) {
   const sql = await getSql();
+  await adoptRowForX(sql, privyId, xId);
   await sql`
     insert into users (privy_id, x_id, x_handle, x_name, avatar_url, wallet)
     values (${privyId}, ${xId}, ${handle ?? null}, ${name ?? null}, ${avatar ?? null}, ${wallet ?? null})
