@@ -40,7 +40,7 @@ export function lineSplitter() {
  * a heartbeat newline every ~20 s, so silence means a dead socket).
  * `backfillMinutes` (0–5) asks X to replay what was missed just before.
  */
-export async function* activityEvents({ token, signal, backfillMinutes = 0, idleMs = 90_000, log = () => {} } = {}) {
+export async function* activityEvents({ token, signal, backfillMinutes = 0, idleMs = 90_000, log = () => {}, onOpen = () => {} } = {}) {
   const url = new URL(`${API}/activity/stream`);
   if (backfillMinutes > 0) url.searchParams.set('backfill_minutes', String(Math.min(5, backfillMinutes)));
   const ctrl = new AbortController();
@@ -60,6 +60,7 @@ export async function* activityEvents({ token, signal, backfillMinutes = 0, idle
       throw e;
     }
     log(`stream open (${r.status})`);
+    try { await onOpen(); } catch { /* a heartbeat, nothing more */ }
     const split = lineSplitter();
     const dec = new TextDecoder();
     armIdle();
@@ -88,14 +89,17 @@ export async function* activityEvents({ token, signal, backfillMinutes = 0, idle
  * connection asks for `backfillMinutes` of replay; reconnects ask for the
  * minutes the socket was down. Stops when `signal` aborts.
  */
-export async function runStream({ token, onEvent, signal, backfillMinutes = 5, log = () => {} }) {
+export async function runStream({ token, onEvent, signal, backfillMinutes = 0, onOpen = () => {}, log = () => {} }) {
   let backoff = 1000;
+  /* backfill_minutes is refused on pay-per-use ("Stream is not authorized
+     to use backfill_minutes parameter", 14 Sep 2026) — the relay ran 11
+     minutes of 400s before this was seen. Off unless asked for. */
   let backfill = backfillMinutes;
   let downSince = null;
   while (!signal?.aborted) {
     const opened = Date.now();
     try {
-      for await (const ev of activityEvents({ token, signal, backfillMinutes: backfill, log })) {
+      for await (const ev of activityEvents({ token, signal, backfillMinutes: backfill, log, onOpen })) {
         try {
           await onEvent(ev);
         } catch (e) {
@@ -107,12 +111,13 @@ export async function runStream({ token, onEvent, signal, backfillMinutes = 5, l
       if (signal?.aborted) break;
       log(`stream error: ${e.message}`);
       if (e.status === 429) backoff = Math.max(backoff, 60_000);
+      if (e.status === 400 && /backfill/.test(e.message)) backfillMinutes = 0;
     }
     if (signal?.aborted) break;
     if (Date.now() - opened > 60_000) backoff = 1000;
     downSince = downSince ?? Date.now();
     await new Promise((r) => setTimeout(r, backoff));
-    backfill = Math.min(5, Math.ceil((Date.now() - downSince) / 60_000));
+    backfill = backfillMinutes ? Math.min(5, Math.ceil((Date.now() - downSince) / 60_000)) : 0;
     backoff = Math.min(60_000, backoff * 2);
     if (backoff === 1000) downSince = null;
   }

@@ -60,6 +60,9 @@ async function main() {
     token: process.env.X_BEARER_TOKEN,
     signal: ctrl.signal,
     log,
+    /* Tells the site the stream is open, so `hooks status` shows a
+       "relay.open" row without anyone reading this job's log. */
+    onOpen: () => site('POST', '/api/x/event', { data: { event_type: 'relay.open', at: new Date().toISOString() } }),
     onEvent: async (ev) => {
       const type = ev?.data?.event_type ?? 'unknown';
       const id = ev?.data?.payload?.id ?? '-';
