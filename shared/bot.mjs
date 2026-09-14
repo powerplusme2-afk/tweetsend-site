@@ -71,6 +71,8 @@ export async function handleMention(ctx, m, bot) {
 }
 
 async function answerMention(ctx, m, bot) {
+  /* Any reply that names the bot gets a link. An amount in the tweet is
+     pre-filled; none (or two) means the sender types it on the pay page. */
   const parsed = parseCommand(m.text, bot.handle);
   if (!parsed.ok) {
     if (parsed.reason === 'no-mention') return { skipped: 'no-mention' };
@@ -78,9 +80,8 @@ async function answerMention(ctx, m, bot) {
       await post(ctx, m.id, MESSAGES.limits(), null);
       return { refused: parsed.reason };
     }
-    await post(ctx, m.id, MESSAGES.noAmount(), null);
-    return { refused: parsed.reason };
   }
+  const usd = parsed.ok ? parsed.usd : null;
   if (!m.recipientId) return { skipped: 'not-a-reply' };
   if (m.recipientId === m.authorId) {
     await post(ctx, m.id, MESSAGES.self(), null);
@@ -93,14 +94,14 @@ async function answerMention(ctx, m, bot) {
   const { intent, created } = await createIntent({
     senderXId: m.authorId, senderHandle: m.authorHandle,
     recipientXId: m.recipientId, recipientHandle: m.recipientHandle, recipientWallet: user.wallet,
-    amountUsd: parsed.usd, chain: CHAIN, source: 'x', triggerTweetId: m.id, parentTweetId: m.parentTweetId,
+    amountUsd: usd, chain: CHAIN, source: 'x', triggerTweetId: m.id, parentTweetId: m.parentTweetId,
   });
   if (!intent.recipient_wallet && user.wallet) await setRecipientWallet(intent.id, user.wallet);
   if (!created && intent.bot_reply_id) return { intent: intent.id, skipped: 'already-answered' };
 
   const link = `${SITE}/pay/${intent.id}`;
-  await post(ctx, m.id, MESSAGES.ready({ amount: parsed.usd, to: m.recipientHandle ?? m.recipientId, link }), intent.id, 'ready');
-  return { intent: intent.id, created, walletMade: user.created };
+  await post(ctx, m.id, MESSAGES.ready({ amount: usd, to: m.recipientHandle ?? m.recipientId, link }), intent.id, 'ready');
+  return { intent: intent.id, created, walletMade: user.created, openAmount: usd == null };
 }
 
 /**

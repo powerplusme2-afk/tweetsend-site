@@ -48,6 +48,7 @@ export async function senderDayTotal(senderXId) {
     select coalesce(sum(amount_usd), 0) as total from intents
     where sender_x_id = ${senderXId}
       and status in ('pending', 'paid', 'claimed')
+      and amount_usd is not null
       and created_at > now() - interval '24 hours'`;
   return Number(rows[0]?.total ?? 0);
 }
@@ -80,7 +81,7 @@ export async function createIntent(i) {
     const again = await sql`select * from intents where trigger_tweet_id = ${i.triggerTweetId}`;
     return { intent: again[0], created: false };
   }
-  await logEvent(id, 'created', `${i.source}: ${i.amountUsd} USDG to @${i.recipientHandle ?? i.recipientXId}`);
+  await logEvent(id, 'created', `${i.source}: ${i.amountUsd ?? 'open amount'} USDG to @${i.recipientHandle ?? i.recipientXId}`);
   return { intent: rows[0], created: true };
 }
 
@@ -115,11 +116,12 @@ export async function txHashUsed(hash) {
 }
 
 /** Only after the receipt has been checked on chain by the caller. */
-export async function markPaid(id, { txHash, ethTxHash, senderWallet, senderPrivyId, senderXId, senderHandle }) {
+export async function markPaid(id, { txHash, ethTxHash, senderWallet, senderPrivyId, senderXId, senderHandle, amountUsd }) {
   const sql = await getSql();
   const rows = await sql`
     update intents set
       status = 'paid', paid_at = now(), tx_hash = ${txHash}, eth_tx_hash = ${ethTxHash ?? null},
+      amount_usd = coalesce(amount_usd, ${amountUsd ?? null}),
       sender_wallet = ${senderWallet ?? null},
       sender_privy_id = coalesce(sender_privy_id, ${senderPrivyId ?? null}),
       sender_x_id = coalesce(sender_x_id, ${senderXId ?? null}),

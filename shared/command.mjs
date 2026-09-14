@@ -67,12 +67,16 @@ export function usd(n) {
 /** The bot's replies. Fixed strings, never generated. */
 export const MESSAGES = Object.freeze({
   /** Command detected — decision B: with the pay link ($0.20). */
-  ready: ({ amount, to, link }) => `Ready — confirm your ${usd(amount)} to @${to}: ${link}`,
+  ready: ({ amount, to, link }) =>
+    amount == null
+      ? `Ready — pick an amount to send @${to}: ${link}`
+      : `Ready — confirm your ${usd(amount)} to @${to}: ${link}`,
   /** Paid, recipient already has an account. */
   sent: ({ amount, to }) => `${usd(amount)} sent to @${to}.`,
   /** Paid, recipient has never signed in. */
   waiting: ({ amount, to, site }) =>
     `${usd(amount)} is waiting for @${to}. Claim it by signing in with X at ${site}.`,
+  /** Kept for the site's own copy; the bot no longer needs an amount in the tweet. */
   noAmount: () => `Tell me how much: reply with @${botHandle()} and an amount, like $10.`,
   limits: () => `Sends are ${usd(LIMITS.minUsd)}–${usd(LIMITS.maxUsd)} for now.`,
   self: () => `You can't send to yourself.`,

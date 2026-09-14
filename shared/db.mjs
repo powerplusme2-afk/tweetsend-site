@@ -94,6 +94,9 @@ async function migrate(sql) {
       claimed_at        timestamptz,
       expires_at        timestamptz not null
     )`;
+  /* Since 14 Sep 2026 a bare mention makes a send with no amount; the sender
+     types it on the pay page. Older tables carried `not null`. */
+  await sql`alter table intents alter column amount_usd drop not null`;
   await sql`create index if not exists intents_sender on intents (sender_x_id, created_at desc)`;
   await sql`create index if not exists intents_recipient on intents (recipient_x_id, created_at desc)`;
   await sql`create index if not exists intents_status on intents (status, expires_at)`;

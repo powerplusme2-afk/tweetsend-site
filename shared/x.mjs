@@ -355,7 +355,8 @@ export async function installWebhook({ url, botUserId }) {
     const j = await call('PUT', `/webhooks/${hook.id}`);
     hook.valid = Boolean(j?.data?.valid);
   }
-  let sub = before.subscriptions.find((s) => s.eventType === MENTION_EVENT && s.userId === String(botUserId));
+  const ours = before.subscriptions.filter((s) => s.eventType === MENTION_EVENT && s.userId === String(botUserId));
+  let sub = ours.find((s) => s.webhookId === hook.id) ?? ours[0];
   let madeSub = false;
   if (!sub) {
     const j = await call('POST', '/activity/subscriptions', {
@@ -372,7 +373,9 @@ export async function installWebhook({ url, botUserId }) {
       await call('PUT', `/activity/subscriptions/${sub.id}`, { body: { webhook_id: hook.id }, user: true });
       sub.webhookId = hook.id;
     } catch {
-      await call('DELETE', `/activity/subscriptions/${sub.id}`, { user: true });
+      /* The stale one may refuse to die too (503 again) — a new subscription
+         on the right hook is what matters; the stale row is harmless. */
+      await call('DELETE', `/activity/subscriptions/${sub.id}`, { user: true }).catch(() => {});
       const j = await call('POST', '/activity/subscriptions', {
         body: { event_type: MENTION_EVENT, filter: { user_id: String(botUserId) }, tag: 'mentions', webhook_id: hook.id },
         user: true,
