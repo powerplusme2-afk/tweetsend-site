@@ -9,14 +9,18 @@
  * PRIVY_APP_SECRET, DATABASE_URL, PUBLIC_SITE_URL, PUBLIC_CHAIN_ID.
  *
  * Flags: `--once` runs one tick and exits; `--dry` reads mentions and
- * writes intents but posts nothing to X.
+ * writes intents but posts nothing to X; `--stream` also holds the X
+ * Activity stream open, so a mention is answered within seconds instead of
+ * at the next tick (the tick stays on as the safety net).
  */
-import { runTick } from '../shared/bot.mjs';
+import { runTick, handleActivityEvent } from '../shared/bot.mjs';
 import { me, xKeysPresent } from '../shared/x.mjs';
+import { runStream } from '../shared/stream.mjs';
 import { privySecretPresent } from '../shared/privy.mjs';
 
 const ONCE = process.argv.includes('--once');
 const DRY = process.argv.includes('--dry');
+const STREAM = process.argv.includes('--stream');
 const SITE = (process.env.PUBLIC_SITE_URL || 'https://tweetsend-site.vercel.app').replace(/\/$/, '');
 const CHAIN = Number(process.env.PUBLIC_CHAIN_ID || 46630);
 const EVERY_MS = 60_000;
@@ -35,7 +39,17 @@ async function main() {
     process.exit(2);
   }
   const bot = await me();
-  log(`bot @${bot.handle} (${bot.id}) · site ${SITE} · chain ${CHAIN}${DRY ? ' · DRY' : ''}`);
+  log(`bot @${bot.handle} (${bot.id}) · site ${SITE} · chain ${CHAIN}${DRY ? ' · DRY' : ''}${STREAM ? ' · stream' : ''}`);
+  if (STREAM && !DRY && !ONCE) {
+    runStream({
+      token: process.env.X_BEARER_TOKEN,
+      log,
+      onEvent: async (ev) => {
+        const r = await handleActivityEvent(ev, { log, via: 'stream' });
+        log(`stream → ${JSON.stringify(r)}`);
+      },
+    }).catch((e) => log(`stream stopped: ${e.message}`));
+  }
   for (;;) {
     let backoff = 0;
     try {

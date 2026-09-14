@@ -100,14 +100,15 @@ async function answerMention(ctx, m, bot) {
 }
 
 /**
- * One X Activity event, as delivered to /api/x/webhook. Only
+ * One X Activity event, as delivered to /api/x/webhook or, by the relay
+ * that reads the stream, to /api/x/event (`via` names which). Only
  * `post.mention.create` does anything; every other event type is answered
  * with `{ ignored }`. The bot's own id/handle come with the event (the
  * subscription filter names the bot's user id, `includes.users` its handle),
  * so no `/users/me` call. A recipient the payload did not name is looked up
  * once by id. Returns the same summary shape as a poll result.
  */
-export async function handleActivityEvent(event, { log = () => {} } = {}) {
+export async function handleActivityEvent(event, { log = () => {}, via = 'webhook' } = {}) {
   const m = normaliseActivityMention(event);
   if (!m) return { ignored: event?.data?.event_type ?? 'unknown' };
   const botId = String(event.data.filter?.user_id ?? '');
@@ -119,9 +120,9 @@ export async function handleActivityEvent(event, { log = () => {} } = {}) {
     const u = await userById(m.recipientId).catch(() => null);
     if (u) Object.assign(m, { recipientHandle: u.handle, recipientName: u.name, recipientAvatar: u.avatar });
   }
-  const ctx = { dry: false, log, wouldPost: [], via: 'webhook' };
+  const ctx = { dry: false, log, wouldPost: [], via };
   const r = await handleMention(ctx, m, bot);
-  log(`webhook ${m.id} @${m.authorHandle} → ${JSON.stringify(r)}`);
+  log(`${via} ${m.id} @${m.authorHandle} → ${JSON.stringify(r)}`);
   return { tweetId: m.id, author: m.authorHandle, ...r };
 }
 

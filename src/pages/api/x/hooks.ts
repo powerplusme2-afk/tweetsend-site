@@ -9,6 +9,7 @@
  *   POST {"action":"uninstall"} → removes both
  *   POST {"action":"replay","minutes":60} → X re-pushes the last hour's events
  *   POST {"action":"ping"} / {"action":"unping","id"} → bot mentions itself / deletes that post
+ *   POST {"action":"stream-probe","minutes":12} → holds the stream open that many seconds
  *
  * Ids and URLs come back; keys never do.
  */
@@ -17,6 +18,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { json, fail, guard, body } from '../../../server/http';
 import { hookStatus, installWebhook, uninstallWebhook, replayWebhook, postTweet, deleteTweet, me, xKeysPresent } from '../../../../shared/x.mjs';
 import { getSql } from '../../../../shared/db.mjs';
+import { activityEvents } from '../../../../shared/stream.mjs';
 
 export const prerender = false;
 
@@ -42,7 +44,7 @@ export const GET: APIRoute = ({ request }) =>
     const sql = await getSql();
     const recent = await sql`
       select kind, detail, at from events
-      where kind in ('webhook', 'webhook-error', 'webhook-reject') order by at desc limit 8`;
+      where kind in ('webhook', 'webhook-error', 'webhook-reject', 'stream', 'stream-error') order by at desc limit 8`;
     const seen = await sql`select via, count(*)::int as n from seen_mentions group by via`;
     return json({ url: WEBHOOK_URL, ...(await hookStatus()), recent, seen });
   });
@@ -71,5 +73,26 @@ export const POST: APIRoute = ({ request }) =>
       return json({ posted: await postTweet(text), text });
     }
     if (action === 'unping') return json({ id, deleted: id ? await deleteTweet(id) : false });
-    return fail('action must be "install", "uninstall", "replay", "ping" or "unping".', 400);
+    /* Opens the Activity stream for a few seconds with the token that lives
+       here, to prove the read token may hold it. Counts only. */
+    if (action === 'stream-probe') {
+      const ctrl = new AbortController();
+      const seconds = Math.min(25, Number(minutes) || 12);
+      const t = setTimeout(() => ctrl.abort(), seconds * 1000);
+      const lines: string[] = [];
+      let events = 0;
+      let opened = false;
+      try {
+        for await (const ev of activityEvents({ token: process.env.X_BEARER_TOKEN as string, signal: ctrl.signal, log: (m: string) => { opened = opened || m.startsWith('stream open'); lines.push(m); } })) {
+          events += 1;
+          lines.push(`event ${(ev as { data?: { event_type?: string } })?.data?.event_type ?? '?'}`);
+        }
+      } catch (e) {
+        if (!ctrl.signal.aborted) lines.push(`error: ${e instanceof Error ? e.message : String(e)}`);
+      } finally {
+        clearTimeout(t);
+      }
+      return json({ opened, seconds, events, log: lines });
+    }
+    return fail('action must be "install", "uninstall", "replay", "ping", "unping" or "stream-probe".', 400);
   });

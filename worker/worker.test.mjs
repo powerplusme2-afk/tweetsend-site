@@ -120,3 +120,13 @@ test('CRC answer and event signature use HMAC-SHA256 of the API secret, base64',
   assert.equal(signatureValid(body, 'sha256=short'), false);
   assert.equal(signatureValid(body, null), false);
 });
+
+import { lineSplitter } from '../shared/stream.mjs';
+
+test('stream lines: heartbeats dropped, partial lines kept until complete', () => {
+  const s = lineSplitter();
+  assert.deepEqual(s.push('{"a":1}\n\n\n{"b":'), ['{"a":1}']);
+  assert.deepEqual(s.push('2}\n\r\n{"c":3}'), ['{"b":2}']);
+  assert.deepEqual(s.flush(), ['{"c":3}']);
+  assert.deepEqual(s.flush(), []);
+});

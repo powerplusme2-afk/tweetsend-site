@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       action:
-        description: 'status | install | uninstall | replay | ping | unping'
+        description: 'status | install | uninstall | replay | ping | unping | stream-probe'
         default: 'status'
       id:
         description: 'tweet id (unping only)'

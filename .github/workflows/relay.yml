@@ -1,0 +1,42 @@
+# Keeps the bot instant: one job holds the X Activity stream open for ~350
+# minutes and hands every mention to the site at once; when its time is up
+# it starts the next job. Start it once from the Actions tab (or
+# `gh workflow run relay.yml`); stop it by disabling the workflow.
+#
+# Needs two repository secrets: X_BEARER_TOKEN (the app's read token — add
+# it yourself under Settings → Secrets → Actions) and TICK_TOKEN (already
+# there). The job never sees the posting keys; those stay on Vercel.
+#
+# Minutes: a private repo has 2 000 free Actions minutes a month, which this
+# uses up in about a day and a half. A public repo has no such cap.
+name: bot relay
+on:
+  workflow_dispatch:
+concurrency:
+  group: relay
+  cancel-in-progress: false
+permissions:
+  actions: write
+  contents: read
+jobs:
+  relay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 358
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: hold the stream
+        id: relay
+        env:
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          TICK_TOKEN: ${{ secrets.TICK_TOKEN }}
+          SITE: https://tweetsend.com
+          MAX_MINUTES: '350'
+        run: node worker/relay.mjs
+      - name: start the next run
+        if: steps.relay.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run relay.yml -R ${{ github.repository }}
