@@ -95,7 +95,7 @@ async function answerMention(ctx, m, bot) {
   if (!created && intent.bot_reply_id) return { intent: intent.id, skipped: 'already-answered' };
 
   const link = `${SITE}/pay/${intent.id}${hint ? `?a=${hint}` : ''}`;
-  await post(ctx, m.id, MESSAGES.ready({ amount: usd, to: m.recipientHandle ?? m.recipientId, link }), intent.id, 'ready');
+  await post(ctx, m.id, MESSAGES.ready({ amount: hint, to: m.recipientHandle ?? m.recipientId, link }), intent.id, 'ready');
   return { intent: intent.id, created, walletMade: user.created, hint };
 }
 
