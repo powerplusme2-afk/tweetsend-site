@@ -15,7 +15,7 @@ Plan of record: `PLAN.md`. Spike results: `SPIKES.md`.
 | `src/server/*` | Privy token verification (JWKS, no secret needed), receipt verification on chain, handle → wallet resolution |
 | `src/app/*` | Browser side: Privy bridge (X profile + tokens), chain config, transfers |
 | `shared/*` | Plain ESM used by both the site and the worker: command grammar + bot strings, DB, Privy REST, X API, intents |
-| `worker/index.mjs` | The bot loop (poll mentions → intents → replies) |
+| `shared/bot.mjs` | One bot tick (poll mentions → intents → replies); `worker/index.mjs` loops it, `api/tick` runs it on Vercel |
 | `.verify/e2e.mjs` | API end-to-end with a real testnet transfer |
 
 ## Run
@@ -47,7 +47,7 @@ node worker/index.mjs --once     # one tick
 node worker/index.mjs --once --dry   # read + write intents, post nothing
 ```
 
-Runs anywhere Node 22+ runs (Railway / Fly, ~$5/mo). It exits with code 2 and a sentence if a key is missing.
+Runs anywhere Node 22+ runs (Railway / Fly, ~$5/mo). It exits with code 2 and a sentence if a key is missing. Without a host, `GET /api/tick` (header `authorization: Bearer $TICK_TOKEN`, `?dry=1` to post nothing) runs one tick on Vercel — any minute-cron pinger keeps the bot alive (Vercel Hobby crons run once a day, not enough).
 
 ## What the server checks before an intent is `paid`
 
