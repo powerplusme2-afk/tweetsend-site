@@ -366,8 +366,21 @@ export async function installWebhook({ url, botUserId }) {
     sub = { id: s.subscription_id ?? s.id ?? null, eventType: MENTION_EVENT, userId: String(botUserId), webhookId: hook.id };
     madeSub = true;
   } else if (sub.webhookId !== hook.id) {
-    await call('PUT', `/activity/subscriptions/${sub.id}`, { body: { webhook_id: hook.id }, user: true });
-    sub.webhookId = hook.id;
+    /* Re-point the subscription at the new hook. X's PUT answered 503 every
+       time on 14 Sep 2026, so a failed update falls back to delete + create. */
+    try {
+      await call('PUT', `/activity/subscriptions/${sub.id}`, { body: { webhook_id: hook.id }, user: true });
+      sub.webhookId = hook.id;
+    } catch {
+      await call('DELETE', `/activity/subscriptions/${sub.id}`, { user: true });
+      const j = await call('POST', '/activity/subscriptions', {
+        body: { event_type: MENTION_EVENT, filter: { user_id: String(botUserId) }, tag: 'mentions', webhook_id: hook.id },
+        user: true,
+      });
+      const s = j?.data?.subscription ?? j?.data ?? {};
+      sub = { id: s.subscription_id ?? s.id ?? null, eventType: MENTION_EVENT, userId: String(botUserId), webhookId: hook.id };
+      madeSub = true;
+    }
   }
   return { webhook: hook, subscription: sub, madeHook, madeSub, dropped };
 }
