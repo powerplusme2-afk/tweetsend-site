@@ -140,14 +140,9 @@ body.on-dark {
   padding: 0 8px;
 }
 .side .brand img {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-}
-.side .brand span {
-  font-size: 19px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
+  width: auto;
+  height: 22px;
+  display: block;
 }
 .side nav {
   display: flex;
@@ -883,6 +878,14 @@ body.on-dark {
   }
   .side .brand {
     flex: 1;
+    min-width: 0;
+  }
+  .side .brand img {
+    flex: none;
+    height: 20px;
+  }
+  .side .site-link {
+    display: none;
   }
   .main {
     padding: 24px 20px 80px;
