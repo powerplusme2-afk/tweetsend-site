@@ -1,34 +1,35 @@
-/* TweetSend product chrome.
-   Two faces live in this file. The landing page (index.astro) keeps its light
-   inset-bar look at the top. Everything under "App shell" is the Rulepad
-   dashboard copied 1:1 — the client's instruction on 14 Sep 2026 was "copy
-   exact, design like the Rulepad app, sidebar and stuff" — with Rulepad's
-   rem values (10px root) written out in px because this site's root is 16px.
-   The dark surfaces are scoped to `.shell` / `body.on-dark` so the landing's
-   `.card`, `.rules` and `.btn` stay as they were. */
+/* TweetSend app chrome.
+   Rulepad's dashboard shell (sidebar, topbar, plates, sheet) copied 1:1 on
+   14 Sep 2026, then re-dressed the same day in the site's own clothes: the
+   button blue from tokens.css on a navy ground, Gilroy + JetBrains Mono, pill
+   controls and soft cards. Rulepad's rem values (10px root) are written out
+   in px because this site's root is 16px. The landing page is gone from this
+   deployment — `/` redirects to `/app` (astro.config.mjs). */
 
-/* ---------- Rulepad tokens (verbatim from rulepad-site/src/styles/global.css) ---------- */
+/* ---------- Rulepad token names, TweetSend values (tokens.css blue, Gilroy, pills) ---------- */
 :root {
-  --ink: #1e211e;
-  --ink-90: #1e211ee6;
-  --ink-70: #1e211eb3;
-  --ink-60: #1e211e99;
-  --ink-40: #1e211e66;
-  --ink-16: #1e211e29;
-  --ink-8: #1e211e14;
+  --ink: #13426f;
+  --ink-90: #13426fe6;
+  --ink-70: #13426fb3;
+  --ink-60: #13426f99;
+  --ink-40: #13426f66;
+  --ink-16: #13426f29;
+  --ink-8: #13426f14;
 
-  --forest: #0f1b13;
-  --forest-deep: #0a120d;
+  /* Navy ground: the landing's --n-95 pushed down two stops. */
+  --forest: #0c2140;
+  --forest-deep: #08172b;
 
-  --mint: #63d98c;
-  --mint-soft: #9be9b5;
-  --mint-deep: #34b36a;
+  /* The site's button blue (tokens.css --a-60) and its neighbours. */
+  --mint: #2e96ff;
+  --mint-soft: #8fc7ff;
+  --mint-deep: #1f7de0;
 
   --white: #fff;
-  --paper: #fbfaf9;
-  --warm: #f2ece8;
-  --line: #e8e4e0;
-  --line-strong: #d9d3cd;
+  --paper: #ffffff;
+  --warm: #eef6ff;
+  --line: #e3eef8;
+  --line-strong: #d3e2f0;
 
   --on-dark: #fff;
   --on-dark-70: #ffffffb3;
@@ -36,13 +37,13 @@
   --on-dark-line: #ffffff26;
   --on-dark-glass: #ffffff26;
 
-  /* Two radii only: 2px on every control, 4px on every card and plate. */
-  --r-btn: 2px;
-  --r-card: 4px;
-  --r-plate: 4px;
+  /* The landing's shapes: pill controls, soft cards. */
+  --r-btn: 999px;
+  --r-card: 16px;
+  --r-plate: 12px;
 
-  --font-geist: Geist, system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-geist-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-geist: var(--font-sans);
+  --font-geist-mono: var(--font-mono);
 
   --ease-out-quart: cubic-bezier(0.165, 0.84, 0.44, 1);
   --ease-in-out: cubic-bezier(0.445, 0.05, 0.55, 0.95);
@@ -57,129 +58,6 @@ output {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-feature-settings: 'zero' 1;
-}
-
-/* ===== Landing (light) ====================================================
-   Only the landing page uses these. Left as they were. */
-.app-body {
-  min-height: 100svh;
-  background: var(--bg-page);
-  color: var(--text-primary);
-}
-.appbar-wrap { position: sticky; top: 0; z-index: 50; padding-block: 12px 0; }
-.appbar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: var(--bar-h);
-  padding: 8px 8px 8px 18px;
-  border: 0;
-  border-radius: var(--r-xl);
-  background: #ffffffbf;
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  backdrop-filter: blur(14px) saturate(160%);
-  box-shadow: var(--shadow-bar);
-}
-.appbar .brand { display: flex; align-items: center; gap: 9px; margin-right: 4px; }
-.appbar .brand .mark {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 30px;
-  color: #6eda5a;
-  flex: 0 0 auto;
-}
-.appbar .brand .mark svg { width: 28px; height: 30px; }
-.appbar .brand b {
-  font-size: 21px;
-  font-weight: var(--fw-black);
-  letter-spacing: -0.02em;
-  color: var(--n-95);
-}
-.appbar nav { display: flex; gap: 2px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
-.appbar nav::-webkit-scrollbar { display: none; }
-.appbar nav a {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 38px;
-  padding: 0 13px;
-  border-radius: var(--r-pill);
-  color: var(--text-secondary);
-  font-size: 15px;
-  font-weight: var(--fw-semibold);
-  white-space: nowrap;
-  transition: color 0.18s var(--ease-standard), background-color 0.18s var(--ease-standard);
-}
-.appbar nav a svg { opacity: 0.75; }
-.appbar nav a:hover { color: var(--text-primary); background: var(--n-05); }
-.appbar nav a.is-on { color: var(--n-95); background: var(--a-20); }
-.appbar .bar-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-.workspace { padding-block: 34px 110px; min-width: 0; }
-.lede { max-width: 62ch; color: var(--text-secondary); }
-
-.card {
-  padding: 26px;
-  border: 0;
-  border-radius: var(--r-lg);
-  background: var(--bg-card);
-  box-shadow: var(--shadow-card);
-}
-.card + .card { margin-top: 16px; }
-.card h2 { font-size: 18px; letter-spacing: -0.02em; }
-.card-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 14px;
-  margin-bottom: 16px;
-}
-.card-head a { color: var(--text-accent); font-size: 14px; font-weight: var(--fw-medium); }
-.card-head a:hover { text-decoration: underline; text-underline-offset: 3px; }
-
-.rules { display: flex; flex-direction: column; gap: 14px; }
-.rules li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 12px; align-items: start; }
-.rules li svg { margin-top: 2px; color: var(--a-70); }
-.rules b { display: block; font-size: 14.5px; font-weight: var(--fw-medium); }
-.rules span { display: block; margin-top: 2px; color: var(--text-secondary); font-size: 13.5px; line-height: 1.5; }
-
-.tweet-mock { margin-top: 20px; display: flex; flex-direction: column; gap: 6px; max-width: 420px; }
-.tweet-mock .tw { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--n-00); font-size: 14px; }
-.tweet-mock .tw b { color: var(--text-secondary); font-weight: var(--fw-semibold); }
-.tweet-mock .tw.is-reply { margin-left: 22px; }
-.tweet-mock .tw.is-bot { margin-left: 44px; background: var(--bg-accent); border-color: var(--a-20); }
-.tweet-mock .tw.is-bot b { color: var(--a-80); }
-
-.landing-hero { padding-block: 64px 40px; max-width: 760px; }
-.landing-hero .eyebrow { display: inline-block; margin-bottom: 14px; font-size: 13px; font-weight: var(--fw-semibold); letter-spacing: 0.04em; text-transform: uppercase; color: var(--a-70); }
-.landing-hero h1 { font-size: clamp(38px, 6vw, 64px); line-height: 1.02; letter-spacing: -0.03em; }
-.landing-hero p.lede { margin-top: 18px; font-size: 19px; color: var(--text-secondary); max-width: 56ch; }
-.landing-hero .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 26px; }
-.landing-thread { margin-top: 36px; max-width: 520px; }
-.landing-thread .tw { opacity: 0; transform: translateY(6px); animation: tw-in 0.5s var(--ease-out-cubic) forwards; }
-.landing-thread .tw:nth-child(2) { animation-delay: 0.7s; }
-.landing-thread .tw:nth-child(3) { animation-delay: 1.5s; }
-.landing-thread .tw:nth-child(4) { animation-delay: 2.4s; }
-@keyframes tw-in { to { opacity: 1; transform: none; } }
-@media (prefers-reduced-motion: reduce) { .landing-thread .tw { animation: none; opacity: 1; transform: none; } }
-.landing-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 44px; }
-@media (width < 48rem) { .landing-steps { grid-template-columns: 1fr; } .landing-hero { padding-block: 36px 24px; } }
-.landing-steps .card b { display: block; font-size: 17px; margin-bottom: 6px; }
-.landing-steps .card span { color: var(--text-secondary); font-size: 14.5px; }
-.landing-steps .card .n { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--a-10); color: var(--a-80); font-family: var(--font-mono); font-size: 13px; font-weight: var(--fw-bold); margin-bottom: 12px; }
-.landing-foot { margin-top: 48px; padding: 24px 0 40px; border-top: 1px solid var(--border); color: var(--text-tertiary); font-size: 13px; display: flex; flex-wrap: wrap; gap: 8px 22px; }
-.landing-foot .mono { font-family: var(--font-mono); }
-@media only screen and (max-width: 639px) {
-  .workspace { padding-block: 24px 88px; }
-  .appbar { flex-wrap: wrap; padding: 8px; border-radius: var(--r-lg); }
-  .appbar .bar-actions { margin-left: auto; min-width: 0; }
-  .appbar nav { order: 3; flex: 1 0 100%; justify-content: space-between; overflow-x: auto; }
-  .appbar nav a { padding: 0 9px; font-size: 13px; }
-  .appbar nav a span { display: none; }
-  .appbar nav a.is-on span { display: inline; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .appbar nav a { transition: none; }
 }
 
 /* ===== App shell (Rulepad, 1:1) ===========================================
@@ -207,7 +85,7 @@ body.on-dark {
 .on-dark :focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 3px;
-  border-radius: 2px;
+  border-radius: 6px;
 }
 
 .shell {
@@ -226,7 +104,7 @@ body.on-dark {
   gap: 24px;
   padding: 20px 16px;
   border-right: 1px solid var(--on-dark-line);
-  background: #0c1610;
+  background: var(--forest);
 }
 .side .brand {
   display: flex;
@@ -293,7 +171,7 @@ body.on-dark {
   height: 32px;
   border-radius: 2px;
   background: var(--mint);
-  color: var(--ink);
+  color: var(--white);
   font-size: 12px;
   font-weight: 500;
   flex: 0 0 auto;
@@ -360,7 +238,7 @@ body.on-dark {
 }
 .chip.is-on {
   color: var(--mint);
-  border-color: #63d98c59;
+  border-color: #2e96ff59;
 }
 /* A wallet on the wrong network can still sign, so this is a warning the
    reader can act on, not a dead end — clicking it switches the chain. */
@@ -455,7 +333,7 @@ body.on-dark {
   margin-bottom: 16px;
   border-radius: var(--r-card);
   background: var(--mint);
-  color: var(--ink);
+  color: var(--white);
 }
 .shell .state.is-bad .ico {
   background: #e8b4a2;
@@ -601,7 +479,7 @@ body.on-dark {
   color: var(--on-dark-50);
   white-space: nowrap;
 }
-.pill.is-back { color: var(--mint); border-color: #63d98c59; }
+.pill.is-back { color: var(--mint); border-color: #2e96ff59; }
 .pill.is-none { color: var(--on-dark-50); }
 .pill.is-wait { color: #ffb27a; border-color: #ffb27a59; }
 
@@ -718,7 +596,7 @@ body.on-dark {
 .quick button:hover { color: var(--on-dark); background: #ffffff14; }
 .quick button.is-on {
   background: var(--mint);
-  color: var(--ink);
+  color: var(--white);
   border-color: var(--mint);
 }
 
@@ -734,7 +612,7 @@ body.on-dark {
 }
 .notice.is-bad { border-color: #e8b4a259; color: #e8b4a2; }
 .notice.is-ok,
-.notice.is-good { border-color: #63d98c59; color: var(--mint); margin-bottom: 16px; }
+.notice.is-good { border-color: #2e96ff59; color: var(--mint); margin-bottom: 16px; }
 .notice.is-wait,
 .notice.is-warn { border-color: #ffb27a59; color: #ffb27a; margin-bottom: 16px; }
 .notice.is-warn b { display: block; margin-bottom: 2px; color: var(--on-dark); }
@@ -800,7 +678,7 @@ body.on-dark {
     transform 0.25s var(--ease-out-quart);
 }
 .shell .btn:active { transform: scale(0.985); }
-.shell .btn-primary { background: var(--mint); color: var(--ink); }
+.shell .btn-primary { background: var(--mint); color: var(--white); }
 .shell .btn-primary:hover { background: var(--mint-soft); }
 .shell .btn-secondary { background: transparent; border-color: var(--on-dark-line); color: var(--on-dark); }
 .shell .btn-secondary:hover { border-color: #ffffff59; background: #ffffff14; }
@@ -828,7 +706,7 @@ body.on-dark {
 .sheet .scrim {
   position: absolute;
   inset: 0;
-  background: #0a120dcc;
+  background: #08172bcc;
   cursor: pointer;
 }
 .sheet .box {
@@ -854,7 +732,7 @@ body.on-dark {
 .sheet .box .actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .sheet .box .actions .btn { flex: 1 1 auto; }
 .shell .sheet .btn-primary { background: var(--ink); color: var(--white); }
-.shell .sheet .btn-primary:hover { background: #2e332e; }
+.shell .sheet .btn-primary:hover { background: var(--ink-90); }
 .shell .sheet .btn-secondary { border-color: var(--ink-16); color: var(--ink); }
 .shell .sheet .btn-secondary:hover { border-color: var(--ink-40); background: var(--ink-8); }
 .busy { opacity: 0.6; pointer-events: none; }
@@ -875,7 +753,7 @@ body.on-dark {
   display: inline-grid;
   place-items: center;
   background: var(--mint);
-  color: var(--ink);
+  color: var(--white);
   font-weight: 500;
   font-size: 14px;
 }
@@ -910,8 +788,14 @@ body.on-dark {
 }
 .shell .tweet-mock .tw b { color: var(--on-dark-70); font-weight: 500; }
 .shell .tweet-mock .tw.is-reply { margin-left: 22px; }
-.shell .tweet-mock .tw.is-bot { margin-left: 44px; background: #63d98c1a; border-color: #63d98c59; }
-.shell .tweet-mock .tw.is-bot b { color: var(--mint); }
+.shell .tweet-mock .tw.is-bot { margin-left: 44px; background: #2e96ff1a; border-color: #2e96ff59; }
+.shell .tweet-mock .tw.is-bot b { color: var(--mint-soft); }
+.shell .tweet-mock .tw { opacity: 0; transform: translateY(6px); animation: tw-in 0.5s var(--ease-out-quart) forwards; }
+.shell .tweet-mock .tw:nth-child(2) { animation-delay: 0.6s; }
+.shell .tweet-mock .tw:nth-child(3) { animation-delay: 1.3s; }
+.shell .tweet-mock .tw:nth-child(4) { animation-delay: 2.1s; }
+@keyframes tw-in { to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .shell .tweet-mock .tw { animation: none; opacity: 1; transform: none; } }
 
 .setup-mark {
   display: inline-grid;
@@ -992,7 +876,7 @@ body.on-dark {
     right: 0;
     bottom: 0;
     z-index: 30;
-    background: #0c1610;
+    background: var(--forest);
     border-top: 1px solid var(--on-dark-line);
     padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
     justify-content: space-around;

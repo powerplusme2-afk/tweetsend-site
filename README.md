@@ -8,7 +8,7 @@ Plan of record: `PLAN.md`. Spike results: `SPIKES.md`.
 
 | Path | What |
 |---|---|
-| `src/pages/index.astro` | Landing (static) |
+| `/` | Redirects to `/app` (astro.config.mjs) — the marketing site is a separate deployment |
 | `src/pages/app/*` | Activity · Send · Claims · Settings · Login (static shells, data via `/api/*`) |
 | `src/pages/pay/[id].astro` | The pay link the bot posts (server-rendered) |
 | `src/pages/api/*` | `config`, `me`, `activity`, `intents`, `intents/:id`, `intents/:id/paid` |

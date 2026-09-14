@@ -9,13 +9,15 @@ export default defineConfig({
   /* Server output: this app has API routes (`src/pages/api/*`) that read and
      write the intents table, verify Privy tokens and check receipts on chain.
      Every page that has no server data is still prerendered (`prerender = true`
-     at the top of the file), so the marketing page and the app shell ship as
+     at the top of the file), so the app shell ships as
      static HTML exactly like the sibling apps. */
   output: 'server',
   adapter: vercel(),
+  /* This deployment is the app only. The marketing site lives elsewhere;
+     opening the bare domain lands on the dashboard (client, 14 Sep 2026). */
+  redirects: { '/': '/app' },
   /* React is here for exactly one reason: Privy ships as a React SDK and the
-     sign-in is a real wallet connection. It runs on the /app* and /pay/* pages
-     only — the landing page is plain Astro with no React in its bundle. */
+     sign-in is a real wallet connection. It runs on the /app* and /pay/* pages. */
   integrations: [react()],
   build: {
     format: 'directory',

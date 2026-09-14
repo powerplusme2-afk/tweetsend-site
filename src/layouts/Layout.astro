@@ -19,10 +19,10 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <meta name="theme-color" content={kit === 'app' ? '#000000' : '#2e96ff'} />
+    <meta name="theme-color" content={'#2e96ff'} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    {kit === 'app' && <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-400.woff2" crossorigin />}
-    {kit === 'app' && <link rel="preload" as="font" type="font/woff2" href="/fonts/geist-mono-400.woff2" crossorigin />}
+    {kit === 'app' && <link rel="preload" as="font" type="font/ttf" href="/fonts/Gilroy-Medium.ttf" crossorigin />}
+    {kit === 'app' && <link rel="preload" as="font" type="font/woff2" href="/fonts/jetbrainsmono-latin-2c32b9b3.woff2" crossorigin />}
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
