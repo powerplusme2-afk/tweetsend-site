@@ -63,3 +63,60 @@ test('oauthHeader reproduces the signature from the X docs worked example', () =
   assert.match(h, /^OAuth /);
   assert.ok(h.includes('oauth_signature="hCtSmYh%2BiHYCEqBWrE7C7hYmtUk%3D"'), h);
 });
+
+/* ---------------------------------------------------------------- webhook */
+import { normaliseActivityMention, crcResponseToken, signatureValid } from '../shared/x.mjs';
+import { createHmac } from 'node:crypto';
+
+/* docs.x.com "Event payloads" sample for post.mention.create (14 Sep 2026),
+   with the reply fields a real mention-in-a-reply carries. */
+const EVENT = {
+  data: {
+    event_uuid: '2080765813578191303',
+    filter: { user_id: '999' },
+    event_type: 'post.mention.create',
+    tag: 'mentions',
+    payload: {
+      id: '2080765813578191303',
+      text: '@tweetsendcc $25',
+      author_id: '111',
+      in_reply_to_user_id: '222',
+      conversation_id: '1899999999999999999',
+      created_at: '2026-09-14T13:00:00.000Z',
+      referenced_tweets: [{ type: 'replied_to', id: '1899999999999999999' }],
+      entities: { mentions: [{ start: 0, end: 12, username: 'tweetsendcc', id: '999' }] },
+    },
+    includes: {
+      users: [
+        { id: '111', username: 'alice', name: 'Alice', profile_image_url: 'https://pbs.twimg.com/a_normal.jpg' },
+        { id: '222', username: 'bob', name: 'Bob' },
+        { id: '999', username: 'tweetsendcc', name: 'TweetSend' },
+      ],
+    },
+  },
+};
+
+test('normaliseActivityMention gives the same record the poll would', () => {
+  const m = normaliseActivityMention(EVENT);
+  assert.equal(m.id, '2080765813578191303');
+  assert.equal(m.text, '@tweetsendcc $25');
+  assert.equal(m.authorId, '111');
+  assert.equal(m.authorHandle, 'alice');
+  assert.equal(m.recipientId, '222');
+  assert.equal(m.recipientHandle, 'bob');
+  assert.equal(m.parentTweetId, '1899999999999999999');
+  assert.equal(m.recipientAvatar, null);
+  assert.equal(normaliseActivityMention({ data: { event_type: 'like.create', payload: { id: '1' } } }), null);
+  assert.equal(normaliseActivityMention(null), null);
+});
+
+test('CRC answer and event signature use HMAC-SHA256 of the API secret, base64', () => {
+  process.env.X_API_SECRET = 'kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw';
+  const expect = (s) => `sha256=${createHmac('sha256', process.env.X_API_SECRET).update(s).digest('base64')}`;
+  assert.equal(crcResponseToken('abc123'), expect('abc123'));
+  const body = JSON.stringify(EVENT);
+  assert.equal(signatureValid(body, expect(body)), true);
+  assert.equal(signatureValid(body, expect(body + ' ')), false);
+  assert.equal(signatureValid(body, 'sha256=short'), false);
+  assert.equal(signatureValid(body, null), false);
+});

@@ -21,6 +21,26 @@ function expiry() {
   return new Date(Date.now() + LIMITS.expiryHours * 3600 * 1000);
 }
 
+/**
+ * Claims a mention for one transport. True = nobody has handled this tweet
+ * yet and the caller now owns it; false = the other transport (webhook or
+ * poll) got there first, say nothing. `releaseMention` undoes a claim when
+ * handling failed, so the next poll retries instead of losing the mention.
+ */
+export async function claimMention(tweetId, via) {
+  const sql = await getSql();
+  const rows = await sql`
+    insert into seen_mentions (tweet_id, via) values (${String(tweetId)}, ${via})
+    on conflict (tweet_id) do nothing
+    returning tweet_id`;
+  return rows.length === 1;
+}
+
+export async function releaseMention(tweetId) {
+  const sql = await getSql();
+  await sql`delete from seen_mentions where tweet_id = ${String(tweetId)}`;
+}
+
 /** Sum of what a sender has paid or promised in the last 24 h, for the daily cap. */
 export async function senderDayTotal(senderXId) {
   const sql = await getSql();

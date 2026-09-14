@@ -115,6 +115,16 @@ async function migrate(sql) {
       value text,
       at    timestamptz not null default now()
     )`;
+  /* Every mention the bot has answered (or refused), whichever way it
+     arrived. The webhook and the poll both see the same mention — the webhook
+     within seconds, the poll minutes later — and whichever claims the row
+     first answers it; the other finds it taken and stays silent. */
+  await sql`
+    create table if not exists seen_mentions (
+      tweet_id text primary key,
+      via      text not null,
+      at       timestamptz not null default now()
+    )`;
 }
 
 /* ---------------------------------------------------------------- helpers */

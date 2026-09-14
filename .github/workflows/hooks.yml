@@ -1,0 +1,26 @@
+# Registers or inspects the X webhook that makes the bot instant. Run by hand
+# from the Actions tab (or `gh workflow run hooks.yml -f action=install`).
+# Nothing runs here except a curl; the work happens in /api/x/hooks on Vercel
+# with the keys that live there. TICK_TOKEN is the same random string tick.yml
+# uses — not one of the client's keys.
+name: x webhook
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'status | install | uninstall'
+        default: 'status'
+jobs:
+  hooks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: ${{ github.event.inputs.action }}
+        run: |
+          A="${{ github.event.inputs.action }}"
+          if [ "$A" = "status" ]; then
+            curl -sS -f -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend-site.vercel.app/api/x/hooks"
+          else
+            curl -sS -f -X POST -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" -H "content-type: application/json" \
+              -d "{\"action\":\"$A\"}" "https://tweetsend-site.vercel.app/api/x/hooks"
+          fi

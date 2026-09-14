@@ -11,7 +11,7 @@ import { APP_ID } from '../../server/env';
 import { chainId, config } from '../../app/chain';
 import { LIMITS, botHandle } from '../../../shared/command.mjs';
 import { privySecretPresent, getUserByXId } from '../../../shared/privy.mjs';
-import { xKeysPresent, xReadPresent, userByHandle, me } from '../../../shared/x.mjs';
+import { xKeysPresent, xReadPresent, userByHandle, me, accessLevel } from '../../../shared/x.mjs';
 import { databaseKind } from '../../../shared/db.mjs';
 
 export const prerender = false;
@@ -42,7 +42,7 @@ async function probe(): Promise<{ x: Record<string, unknown>; bot: Record<string
   /* The bot account's handle is public; it is the one thing the probe names. */
   const bot = xKeysPresent()
     ? await me()
-        .then((b) => ({ ok: true, status: 200, handle: b.handle }))
+        .then(async (b) => ({ ok: true, status: 200, handle: b.handle, access: await accessLevel().catch((e: Error & { status?: number }) => `error ${e.status ?? e.message}`) }))
         .catch((e: Error & { code?: string; status?: number }) => ({ ok: false, status: e.status ?? null, code: e.code ?? null, reason: e.message }))
     : { ok: false, status: null, code: 'x-keys-missing', reason: 'X_ACCESS_TOKEN / X_ACCESS_TOKEN_SECRET not set' };
   return { x, bot, privy };

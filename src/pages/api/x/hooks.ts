@@ -1,0 +1,51 @@
+/**
+ * Registers (and shows) the X webhook that makes the bot instant. Behind
+ * TICK_TOKEN like /api/tick, because it spends X credits and changes the
+ * app's X configuration.
+ *
+ *   GET                      → every webhook + activity subscription on the app
+ *   POST {"action":"install"}   → webhook for <site>/api/x/webhook + a
+ *                                 post.mention.create subscription on the bot
+ *   POST {"action":"uninstall"} → removes both
+ *
+ * Ids and URLs come back; keys never do.
+ */
+import type { APIRoute } from 'astro';
+import { timingSafeEqual } from 'node:crypto';
+import { json, fail, guard, body } from '../../../server/http';
+import { hookStatus, installWebhook, uninstallWebhook, me, xKeysPresent } from '../../../../shared/x.mjs';
+
+export const prerender = false;
+
+const SITE = (process.env.PUBLIC_SITE_URL || 'https://tweetsend-site.vercel.app').replace(/\/$/, '');
+const WEBHOOK_URL = `${SITE}/api/x/webhook`;
+
+function allowed(request: Request): boolean {
+  const token = process.env.TICK_TOKEN;
+  if (!token) return false;
+  const auth = request.headers.get('authorization') ?? '';
+  const given = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+  if (given.length !== token.length) return false;
+  return timingSafeEqual(Buffer.from(given), Buffer.from(token));
+}
+
+export const GET: APIRoute = ({ request }) =>
+  guard(async () => {
+    if (!allowed(request)) return fail('TICK_TOKEN missing or wrong.', 401);
+    if (!xKeysPresent()) return fail('X keys are not all set.', 503);
+    return json({ url: WEBHOOK_URL, ...(await hookStatus()) });
+  });
+
+export const POST: APIRoute = ({ request }) =>
+  guard(async () => {
+    if (!allowed(request)) return fail('TICK_TOKEN missing or wrong.', 401);
+    if (!xKeysPresent()) return fail('X keys are not all set.', 503);
+    const { action } = await body<{ action?: string }>(request);
+    if (action === 'install') {
+      const bot = await me();
+      const r = await installWebhook({ url: WEBHOOK_URL, botUserId: bot.id });
+      return json({ bot: bot.handle, url: WEBHOOK_URL, ...r });
+    }
+    if (action === 'uninstall') return json({ url: WEBHOOK_URL, removed: await uninstallWebhook({ url: WEBHOOK_URL }) });
+    return fail('action must be "install" or "uninstall".', 400);
+  });

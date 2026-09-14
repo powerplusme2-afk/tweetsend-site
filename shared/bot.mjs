@@ -20,9 +20,9 @@
  */
 import { parseCommand, MESSAGES } from './command.mjs';
 import { getSql, expireStale, logEvent } from './db.mjs';
-import { me, mentions, reply } from './x.mjs';
+import { me, mentions, reply, normaliseActivityMention, userById } from './x.mjs';
 import { ensureUserForX } from './privy.mjs';
-import { createIntent, setBotReply, setRecipientWallet, paidUnannounced, rememberX, hasSignedIn } from './intents.mjs';
+import { createIntent, setBotReply, setRecipientWallet, paidUnannounced, rememberX, hasSignedIn, claimMention, releaseMention } from './intents.mjs';
 
 const SITE = (process.env.PUBLIC_SITE_URL || 'https://tweetsend-site.vercel.app').replace(/\/$/, '');
 const CHAIN = Number(process.env.PUBLIC_CHAIN_ID || 46630);
@@ -49,10 +49,28 @@ async function post(ctx, tweetId, text, intentId, field) {
   return id;
 }
 
-/** One mention → one intent (or one templated refusal, or silence). */
+/**
+ * One mention → one intent (or one templated refusal, or silence).
+ *
+ * The same mention arrives twice — by webhook within seconds and by the poll
+ * a few minutes later — so the first thing done is to claim it; the second
+ * arrival finds it claimed and says nothing. A failure half-way releases the
+ * claim, so the next poll answers instead of the mention being lost. A dry
+ * run claims nothing.
+ */
 export async function handleMention(ctx, m, bot) {
   if (m.authorId === bot.id) return { skipped: 'own-post' };
   if (m.recipientId === bot.id) return { skipped: 'reply-to-bot' };
+  if (!ctx.dry && !(await claimMention(m.id, ctx.via ?? 'poll'))) return { skipped: 'seen' };
+  try {
+    return await answerMention(ctx, m, bot);
+  } catch (e) {
+    if (!ctx.dry) await releaseMention(m.id).catch(() => {});
+    throw e;
+  }
+}
+
+async function answerMention(ctx, m, bot) {
   const parsed = parseCommand(m.text, bot.handle);
   if (!parsed.ok) {
     if (parsed.reason === 'no-mention') return { skipped: 'no-mention' };
@@ -83,6 +101,32 @@ export async function handleMention(ctx, m, bot) {
   const link = `${SITE}/pay/${intent.id}`;
   await post(ctx, m.id, MESSAGES.ready({ amount: parsed.usd, to: m.recipientHandle ?? m.recipientId, link }), intent.id, 'ready');
   return { intent: intent.id, created, walletMade: user.created };
+}
+
+/**
+ * One X Activity event, as delivered to /api/x/webhook. Only
+ * `post.mention.create` does anything; every other event type is answered
+ * with `{ ignored }`. The bot's own id/handle come with the event (the
+ * subscription filter names the bot's user id, `includes.users` its handle),
+ * so no `/users/me` call. A recipient the payload did not name is looked up
+ * once by id. Returns the same summary shape as a poll result.
+ */
+export async function handleActivityEvent(event, { log = () => {} } = {}) {
+  const m = normaliseActivityMention(event);
+  if (!m) return { ignored: event?.data?.event_type ?? 'unknown' };
+  const botId = String(event.data.filter?.user_id ?? '');
+  const users = event.data.includes?.users ?? [];
+  const self = users.find((u) => u.id === botId);
+  const bot = self ? { id: botId, handle: self.username } : await me();
+  if (!process.env.X_BOT_HANDLE) process.env.X_BOT_HANDLE = bot.handle;
+  if (m.recipientId && !m.recipientHandle && m.recipientId !== bot.id) {
+    const u = await userById(m.recipientId).catch(() => null);
+    if (u) Object.assign(m, { recipientHandle: u.handle, recipientName: u.name, recipientAvatar: u.avatar });
+  }
+  const ctx = { dry: false, log, wouldPost: [], via: 'webhook' };
+  const r = await handleMention(ctx, m, bot);
+  log(`webhook ${m.id} @${m.authorHandle} → ${JSON.stringify(r)}`);
+  return { tweetId: m.id, author: m.authorHandle, ...r };
 }
 
 async function announcePaid(ctx) {
