@@ -11,6 +11,9 @@ on:
       dry:
         description: 'dry run (post nothing)'
         default: 'false'
+      since:
+        description: 'rewind: re-read mentions after this tweet id (dry runs only)'
+        default: ''
 jobs:
   tick:
     runs-on: ubuntu-latest
@@ -18,5 +21,6 @@ jobs:
     steps:
       - name: tick
         run: |
-          DRY=""; [ "${{ github.event.inputs.dry }}" = "true" ] && DRY="?dry=1"
-          curl -sS -f -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend.com/api/tick$DRY"
+          Q=""; [ "${{ github.event.inputs.dry }}" = "true" ] && Q="?dry=1"
+          [ -n "$Q" ] && [ -n "${{ github.event.inputs.since }}" ] && Q="$Q&since=${{ github.event.inputs.since }}"
+          curl -sS -f -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend.com/api/tick$Q"
