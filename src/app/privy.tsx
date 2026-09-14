@@ -262,7 +262,7 @@ export function PrivyApp() {
         appearance: {
           /* The Privy sheet matches the shell: Rulepad's dark theme and mint accent. */
           theme: 'dark',
-          accentColor: '#2e96ff',
+          accentColor: '#0052ff',
           logo: '/brand/logo-dark.svg',
           landingHeader: 'Sign in to TweetSend',
           loginMessage: 'Send crypto under a tweet.',

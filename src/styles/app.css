@@ -1,45 +1,63 @@
 /* TweetSend app chrome.
    Rulepad's dashboard shell (sidebar, topbar, plates, sheet) copied 1:1 on
    14 Sep 2026, then re-dressed the same day in the site's own clothes: the
-   button blue from tokens.css on a navy ground, Gilroy + JetBrains Mono, pill
-   controls and soft cards. Rulepad's rem values (10px root) are written out
+   HeroUI dark palette the client supplied (oklch, hue 262.87), Gilroy +
+   JetBrains Mono, 12px radius everywhere. Rulepad's rem values (10px root) are written out
    in px because this site's root is 16px. The landing page is gone from this
    deployment — `/` redirects to `/app` (astro.config.mjs). */
 
 /* ---------- Rulepad token names, TweetSend values (tokens.css blue, Gilroy, pills) ---------- */
 :root {
-  --ink: #13426f;
-  --ink-90: #13426fe6;
-  --ink-70: #13426fb3;
-  --ink-60: #13426f99;
-  --ink-40: #13426f66;
-  --ink-16: #13426f29;
-  --ink-8: #13426f14;
+  /* HeroUI dark theme (client, 14 Sep 2026). Names below are Rulepad's
+     token names kept so the shell rules read unchanged; values are HeroUI's. */
+  --hero-accent: oklch(52.82% 0.2628 262.87);
+  --hero-background: oklch(12% 0.002 262.87);
+  --hero-border: oklch(28% 0.002 262.87);
+  --hero-danger: oklch(59.4% 0.1975 25.71);
+  --hero-default: oklch(27.4% 0.002 262.87);
+  --hero-field: oklch(21.03% 0.004 262.87);
+  --hero-foreground: oklch(99.11% 0.002 262.87);
+  --hero-muted: oklch(70.5% 0.004 262.87);
+  --hero-overlay: oklch(21.03% 0.004 262.87);
+  --hero-segment: oklch(39.64% 0.002 262.87);
+  --hero-separator: oklch(25% 0.002 262.87);
+  --hero-success: oklch(73.29% 0.1943 151.89);
+  --hero-surface: oklch(21.03% 0.004 262.87);
+  --hero-surface-2: oklch(25.7% 0.003 262.87);
+  --hero-surface-3: oklch(27.21% 0.003 262.87);
+  --hero-warning: oklch(82.03% 0.1394 77.42);
 
-  /* Navy ground: the landing's --n-95 pushed down two stops. */
-  --forest: #0c2140;
-  --forest-deep: #08172b;
+  /* "ink" is the sheet's text: the sheet is a dark overlay now, so ink is light. */
+  --ink: var(--hero-foreground);
+  --ink-90: oklch(99.11% 0.002 262.87 / 0.9);
+  --ink-70: var(--hero-muted);
+  --ink-60: oklch(70.5% 0.004 262.87 / 0.85);
+  --ink-40: oklch(70.5% 0.004 262.87 / 0.5);
+  --ink-16: var(--hero-border);
+  --ink-8: oklch(99.11% 0.002 262.87 / 0.06);
 
-  /* The site's button blue (tokens.css --a-60) and its neighbours. */
-  --mint: #2e96ff;
-  --mint-soft: #8fc7ff;
-  --mint-deep: #1f7de0;
+  --forest: var(--hero-surface);
+  --forest-deep: var(--hero-background);
 
-  --white: #fff;
-  --paper: #ffffff;
-  --warm: #eef6ff;
-  --line: #e3eef8;
-  --line-strong: #d3e2f0;
+  --mint: var(--hero-accent);
+  --mint-soft: oklch(60% 0.24 262.87);
+  --mint-deep: oklch(46% 0.26 262.87);
 
-  --on-dark: #fff;
-  --on-dark-70: #ffffffb3;
-  --on-dark-50: #ffffff80;
-  --on-dark-line: #ffffff26;
-  --on-dark-glass: #ffffff26;
+  --white: oklch(99.11% 0 0);
+  --paper: var(--hero-overlay);
+  --warm: var(--hero-surface-2);
+  --line: var(--hero-separator);
+  --line-strong: var(--hero-border);
 
-  /* The landing's shapes: pill controls, soft cards. */
-  --r-btn: 999px;
-  --r-card: 16px;
+  --on-dark: var(--hero-foreground);
+  --on-dark-70: var(--hero-muted);
+  --on-dark-50: oklch(70.5% 0.004 262.87 / 0.7);
+  --on-dark-line: var(--hero-border);
+  --on-dark-glass: var(--hero-default);
+
+  /* HeroUI --radius / --field-radius: 0.75rem. */
+  --r-btn: 12px;
+  --r-card: 12px;
   --r-plate: 12px;
 
   --font-geist: var(--font-sans);
@@ -139,7 +157,7 @@ body.on-dark {
 .side nav a:hover,
 .side nav a.is-on {
   color: var(--on-dark);
-  background: #ffffff14;
+  background: var(--hero-default);
 }
 .side .grow {
   flex: 1;
@@ -238,13 +256,13 @@ body.on-dark {
 }
 .chip.is-on {
   color: var(--mint);
-  border-color: #2e96ff59;
+  border-color: oklch(52.82% 0.2628 262.87 / 0.5);
 }
 /* A wallet on the wrong network can still sign, so this is a warning the
    reader can act on, not a dead end — clicking it switches the chain. */
 .chip.is-wrong {
-  color: #ffb27a;
-  border-color: #ffb27a59;
+  color: var(--hero-warning);
+  border-color: oklch(82.03% 0.1394 77.42 / 0.5);
 }
 .chip.is-off {
   color: var(--on-dark-50);
@@ -287,7 +305,7 @@ body.on-dark {
 .shell .card {
   border: 1px solid var(--on-dark-line);
   border-radius: var(--r-card);
-  background: #ffffff0a;
+  background: var(--hero-surface);
   padding: 24px;
   box-shadow: none;
 }
@@ -336,7 +354,7 @@ body.on-dark {
   color: var(--white);
 }
 .shell .state.is-bad .ico {
-  background: #e8b4a2;
+  background: var(--hero-danger);
 }
 .shell .state h2 {
   font-size: 24px;
@@ -370,7 +388,7 @@ body.on-dark {
 .shell .state code {
   font-family: var(--font-geist-mono);
   font-size: 13px;
-  background: #ffffff14;
+  background: var(--hero-default);
   padding: 1px 6px;
   border-radius: 2px;
 }
@@ -447,7 +465,7 @@ body.on-dark {
   width: 32px;
   height: 32px;
   border-radius: 2px;
-  background: #ffffff14;
+  background: var(--hero-default);
   color: var(--on-dark-70);
 }
 .rowlist .ico.is-in,
@@ -479,9 +497,9 @@ body.on-dark {
   color: var(--on-dark-50);
   white-space: nowrap;
 }
-.pill.is-back { color: var(--mint); border-color: #2e96ff59; }
+.pill.is-back { color: var(--mint); border-color: oklch(52.82% 0.2628 262.87 / 0.5); }
 .pill.is-none { color: var(--on-dark-50); }
-.pill.is-wait { color: #ffb27a; border-color: #ffb27a59; }
+.pill.is-wait { color: var(--hero-warning); border-color: oklch(82.03% 0.1394 77.42 / 0.5); }
 
 /* ---------- Forms (Rulepad's `.field`, dark variant) ---------- */
 .form-stack {
@@ -507,7 +525,7 @@ body.on-dark {
   padding: 0 14px;
   border: 1px solid var(--on-dark-line);
   border-radius: var(--r-btn);
-  background: #ffffff0f;
+  background: var(--hero-field);
   color: var(--on-dark);
   font: inherit;
   font-size: 16px;
@@ -538,8 +556,8 @@ body.on-dark {
 }
 .field .help b { color: var(--on-dark); font-family: var(--font-geist-mono); font-weight: 400; }
 .field.is-bad input,
-.field.is-bad textarea { border-color: #e8b4a2; }
-.field.is-bad .help { color: #e8b4a2; }
+.field.is-bad textarea { border-color: var(--hero-danger); }
+.field.is-bad .help { color: var(--hero-danger); }
 
 /* The amount field is the one big control on the Send page. Same box as
    Rulepad's inputs; the number is set like its `.pct-row output`. */
@@ -550,7 +568,7 @@ body.on-dark {
   padding: 4px 14px 4px 4px;
   border: 1px solid var(--on-dark-line);
   border-radius: var(--r-btn);
-  background: #ffffff0f;
+  background: var(--hero-field);
 }
 .amount-box:focus-within { outline: 2px solid var(--on-dark); outline-offset: 1px; }
 .amount-box input {
@@ -593,7 +611,7 @@ body.on-dark {
   text-transform: uppercase;
   cursor: pointer;
 }
-.quick button:hover { color: var(--on-dark); background: #ffffff14; }
+.quick button:hover { color: var(--on-dark); background: var(--hero-default); }
 .quick button.is-on {
   background: var(--mint);
   color: var(--white);
@@ -605,16 +623,16 @@ body.on-dark {
   padding: 12px 14px;
   border: 1px solid var(--on-dark-line);
   border-radius: var(--r-card);
-  background: #ffffff0a;
+  background: var(--hero-surface-2);
   color: var(--on-dark-70);
   font-size: 14px;
   line-height: 1.5;
 }
-.notice.is-bad { border-color: #e8b4a259; color: #e8b4a2; }
+.notice.is-bad { border-color: oklch(59.4% 0.1975 25.71 / 0.5); color: var(--hero-danger); }
 .notice.is-ok,
-.notice.is-good { border-color: #2e96ff59; color: var(--mint); margin-bottom: 16px; }
+.notice.is-good { border-color: oklch(73.29% 0.1943 151.89 / 0.5); color: var(--hero-success); margin-bottom: 16px; }
 .notice.is-wait,
-.notice.is-warn { border-color: #ffb27a59; color: #ffb27a; margin-bottom: 16px; }
+.notice.is-warn { border-color: oklch(82.03% 0.1394 77.42 / 0.5); color: var(--hero-warning); margin-bottom: 16px; }
 .notice.is-warn b { display: block; margin-bottom: 2px; color: var(--on-dark); }
 .notice a { color: inherit; text-decoration: underline; text-underline-offset: 0.25em; }
 .notice code, .notice .mono { font-family: var(--font-geist-mono); font-size: 12.5px; }
@@ -681,9 +699,9 @@ body.on-dark {
 .shell .btn-primary { background: var(--mint); color: var(--white); }
 .shell .btn-primary:hover { background: var(--mint-soft); }
 .shell .btn-secondary { background: transparent; border-color: var(--on-dark-line); color: var(--on-dark); }
-.shell .btn-secondary:hover { border-color: #ffffff59; background: #ffffff14; }
+.shell .btn-secondary:hover { border-color: var(--hero-segment); background: var(--hero-default); }
 .shell .btn-ghost { background: transparent; color: var(--on-dark-70); }
-.shell .btn-ghost:hover { background: #ffffff14; color: var(--on-dark); }
+.shell .btn-ghost:hover { background: var(--hero-default); color: var(--on-dark); }
 .shell .btn-sm { min-height: 36px; padding: 0 14px; font-size: 14px; }
 .shell .btn-lg { min-height: 59px; padding: 16px 34px; font-size: 19px; }
 .shell .btn-block { width: 100%; }
@@ -706,7 +724,7 @@ body.on-dark {
 .sheet .scrim {
   position: absolute;
   inset: 0;
-  background: #08172bcc;
+  background: oklch(12% 0.002 262.87 / 0.8);
   cursor: pointer;
 }
 .sheet .box {
@@ -728,11 +746,11 @@ body.on-dark {
 .sheet .box .kv dt { color: var(--ink-60); }
 .sheet .box .kv dd a { color: var(--ink); }
 .sheet .box .notice { border-color: var(--line); background: var(--warm); color: var(--ink-70); }
-.sheet .box .notice.is-bad { border-color: #f0c1bb; background: #fdecea; color: #7a1f16; }
+.sheet .box .notice.is-bad { border-color: oklch(59.4% 0.1975 25.71 / 0.5); background: transparent; color: var(--hero-danger); }
 .sheet .box .actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .sheet .box .actions .btn { flex: 1 1 auto; }
-.shell .sheet .btn-primary { background: var(--ink); color: var(--white); }
-.shell .sheet .btn-primary:hover { background: var(--ink-90); }
+.shell .sheet .btn-primary { background: var(--mint); color: var(--white); }
+.shell .sheet .btn-primary:hover { background: var(--mint-soft); }
 .shell .sheet .btn-secondary { border-color: var(--ink-16); color: var(--ink); }
 .shell .sheet .btn-secondary:hover { border-color: var(--ink-40); background: var(--ink-8); }
 .busy { opacity: 0.6; pointer-events: none; }
@@ -746,7 +764,7 @@ body.on-dark {
   height: 34px;
   border-radius: 2px;
   object-fit: cover;
-  background: #ffffff14;
+  background: var(--hero-default);
   flex: 0 0 auto;
 }
 .av-letter {
@@ -765,7 +783,7 @@ body.on-dark {
   padding: 12px 14px;
   border: 1px solid var(--on-dark-line);
   border-radius: var(--r-card);
-  background: #ffffff0a;
+  background: var(--hero-surface-2);
 }
 .recipient b { display: block; font-size: 15px; font-weight: 500; }
 .recipient span { display: block; margin-top: 1px; color: var(--on-dark-50); font-size: 13px; }
@@ -782,14 +800,14 @@ body.on-dark {
   padding: 10px 14px;
   border: 1px solid var(--on-dark-line);
   border-radius: var(--r-card);
-  background: #ffffff0a;
+  background: var(--hero-surface-2);
   color: var(--on-dark);
   font-size: 14px;
 }
 .shell .tweet-mock .tw b { color: var(--on-dark-70); font-weight: 500; }
 .shell .tweet-mock .tw.is-reply { margin-left: 22px; }
-.shell .tweet-mock .tw.is-bot { margin-left: 44px; background: #2e96ff1a; border-color: #2e96ff59; }
-.shell .tweet-mock .tw.is-bot b { color: var(--mint-soft); }
+.shell .tweet-mock .tw.is-bot { margin-left: 44px; background: oklch(52.82% 0.2628 262.87 / 0.18); border-color: oklch(52.82% 0.2628 262.87 / 0.5); }
+.shell .tweet-mock .tw.is-bot b { color: oklch(75% 0.16 262.87); }
 .shell .tweet-mock .tw { opacity: 0; transform: translateY(6px); animation: tw-in 0.5s var(--ease-out-quart) forwards; }
 .shell .tweet-mock .tw:nth-child(2) { animation-delay: 0.6s; }
 .shell .tweet-mock .tw:nth-child(3) { animation-delay: 1.3s; }
@@ -808,8 +826,8 @@ body.on-dark {
   margin-top: 1px;
 }
 .setup-mark.is-ok { background: var(--mint); color: var(--ink); }
-.setup-mark.is-missing { background: #e8b4a2; color: var(--ink); }
-.setup-mark.is-unknown { background: #ffffff14; color: var(--on-dark-50); }
+.setup-mark.is-missing { background: var(--hero-danger); color: var(--ink); }
+.setup-mark.is-unknown { background: var(--hero-default); color: var(--on-dark-50); }
 [data-setup] li { grid-template-columns: 24px minmax(0, 1fr); }
 [data-setup] li span { word-break: break-word; }
 
