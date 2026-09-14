@@ -1,49 +1,58 @@
 /* TweetSend app chrome.
    Rulepad's dashboard shell (sidebar, topbar, plates, sheet) copied 1:1 on
-   14 Sep 2026, then re-dressed the same day in the site's own clothes: the
-   HeroUI dark palette the client supplied (oklch, hue 262.87), Gilroy +
-   JetBrains Mono, 12px radius everywhere. Rulepad's rem values (10px root) are written out
-   in px because this site's root is 16px. The landing page is gone from this
-   deployment — `/` redirects to `/app` (astro.config.mjs). */
+   14 Sep 2026, then dressed in the landing page's clothes the same evening:
+   the tweetsend-vivid palette (navy #000243 ground, blue ramp to #55B1F7,
+   paper #FFFDF9 text), Neue Montreal + JetBrains Mono, 12px radius, and the
+   landing's slow blue flares drifting behind the shell. Rulepad's rem values
+   (10px root) are written out in px because this site's root is 16px. The
+   landing page is gone from this deployment — `/` redirects to the marketing
+   site (astro.config.mjs). */
 
-/* ---------- Rulepad token names, TweetSend values (tokens.css blue, Gilroy, pills) ---------- */
+/* ---------- Rulepad token names, TweetSend values (vivid blue ramp, Neue Montreal) ---------- */
 :root {
-  /* HeroUI dark theme (client, 14 Sep 2026). Names below are Rulepad's
-     token names kept so the shell rules read unchanged; values are HeroUI's. */
-  --hero-accent: oklch(52.82% 0.2628 262.87);
-  --hero-background: oklch(12% 0.002 262.87);
-  --hero-border: oklch(28% 0.002 262.87);
-  --hero-danger: oklch(59.4% 0.1975 25.71);
-  --hero-default: oklch(27.4% 0.002 262.87);
-  --hero-field: oklch(21.03% 0.004 262.87);
-  --hero-foreground: oklch(99.11% 0.002 262.87);
-  --hero-muted: oklch(70.5% 0.004 262.87);
-  --hero-overlay: oklch(21.03% 0.004 262.87);
-  --hero-segment: oklch(39.64% 0.002 262.87);
-  --hero-separator: oklch(25% 0.002 262.87);
-  --hero-success: oklch(73.29% 0.1943 151.89);
-  --hero-surface: oklch(21.03% 0.004 262.87);
-  --hero-surface-2: oklch(25.7% 0.003 262.87);
-  --hero-surface-3: oklch(27.21% 0.003 262.87);
-  --hero-warning: oklch(82.03% 0.1394 77.42);
+  /* tweetsend-vivid ramp (vividand-mirror/_mirror/tweetsend-apply.py):
+     blue950 #000243 · 900 #010958 · 800 #021571 · 700 #06258B · 600 #0F3BA2
+     500 #2A72BF · 400 #378DD8 · 300 #55B1F7 · 200 #8DD4FF · paper #FFFDF9.
+     Names below are Rulepad's token names kept so the shell rules read
+     unchanged; values are the landing's. */
+  --hero-accent: #55b1f7;
+  --hero-background: #000243;
+  --hero-border: #fffdf933;
+  --hero-danger: #ff7a7a;
+  --hero-default: #06258b;
+  --hero-field: #00062b;
+  --hero-foreground: #fffdf9;
+  --hero-muted: #a9bdd9;
+  --hero-overlay: #010958;
+  --hero-segment: #2a72bf;
+  --hero-separator: #fffdf91f;
+  --hero-success: #6fe3a1;
+  --hero-surface: #010958;
+  --hero-surface-2: #021571;
+  --hero-surface-3: #06258b;
+  --hero-warning: #f5c76a;
 
-  /* "ink" is the sheet's text: the sheet is a dark overlay now, so ink is light. */
+  /* "ink" is the sheet's text: the sheet is a dark overlay, so ink is light. */
   --ink: var(--hero-foreground);
-  --ink-90: oklch(99.11% 0.002 262.87 / 0.9);
+  --ink-90: #fffdf9e6;
   --ink-70: var(--hero-muted);
-  --ink-60: oklch(70.5% 0.004 262.87 / 0.85);
-  --ink-40: oklch(70.5% 0.004 262.87 / 0.5);
+  --ink-60: #a9bdd9d9;
+  --ink-40: #a9bdd980;
   --ink-16: var(--hero-border);
-  --ink-8: oklch(99.11% 0.002 262.87 / 0.06);
+  --ink-8: #fffdf90f;
 
   --forest: var(--hero-surface);
   --forest-deep: var(--hero-background);
 
   --mint: var(--hero-accent);
-  --mint-soft: oklch(60% 0.24 262.87);
-  --mint-deep: oklch(46% 0.26 262.87);
+  --mint-soft: #8dd4ff;
+  --mint-deep: #378dd8;
+  --mint-line: #55b1f780;
+  --mint-wash: #55b1f72e;
+  /* Text on an accent fill: the landing's own navy, never white (2.6:1). */
+  --on-mint: var(--hero-background);
 
-  --white: oklch(99.11% 0 0);
+  --white: #fffdf9;
   --paper: var(--hero-overlay);
   --warm: var(--hero-surface-2);
   --line: var(--hero-separator);
@@ -51,11 +60,10 @@
 
   --on-dark: var(--hero-foreground);
   --on-dark-70: var(--hero-muted);
-  --on-dark-50: oklch(70.5% 0.004 262.87 / 0.7);
+  --on-dark-50: #a9bdd9b3;
   --on-dark-line: var(--hero-border);
   --on-dark-glass: var(--hero-default);
 
-  /* HeroUI --radius / --field-radius: 0.75rem. */
   --r-btn: 12px;
   --r-card: 12px;
   --r-plate: 12px;
@@ -88,6 +96,37 @@ body.on-dark {
   font-size: 16px;
   font-weight: 400;
   line-height: 1.55;
+  position: relative;
+  isolation: isolate;
+}
+/* The landing's WebGL flares (#06258B / #2A72BF on #000243), as two soft
+   radial washes that drift the way the shader's camera does. Fixed, behind
+   everything, and still when the reader asked for less motion. */
+body.on-dark::before,
+body.on-dark::after {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform;
+}
+body.on-dark::before {
+  background:
+    radial-gradient(38% 34% at 22% 18%, #0f3ba2 0%, #0f3ba200 70%),
+    radial-gradient(30% 28% at 84% 78%, #06258b 0%, #06258b00 70%);
+  animation: flare-a 26s var(--ease-in-out) infinite alternate;
+}
+body.on-dark::after {
+  background:
+    radial-gradient(22% 20% at 68% 24%, #2a72bf66 0%, #2a72bf00 70%),
+    radial-gradient(26% 24% at 30% 84%, #0f3ba280 0%, #0f3ba200 70%);
+  animation: flare-b 34s var(--ease-in-out) infinite alternate;
+}
+@keyframes flare-a { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(4%, -3%, 0) scale(1.08); } }
+@keyframes flare-b { from { transform: translate3d(0, 0, 0) scale(1.05); } to { transform: translate3d(-5%, 4%, 0) scale(0.98); } }
+@media (prefers-reduced-motion: reduce) {
+  body.on-dark::before, body.on-dark::after { animation: none; }
 }
 /* Rulepad's headings carry no weight of their own; each surface sets it. */
 .on-dark :is(h1, h2, h3, h4, h5, h6) {
@@ -110,7 +149,7 @@ body.on-dark {
   min-height: 100svh;
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
-  background: var(--forest-deep);
+  background: transparent; /* the flares on body show through */
   color: var(--on-dark);
 }
 .side {
@@ -122,7 +161,9 @@ body.on-dark {
   gap: 24px;
   padding: 20px 16px;
   border-right: 1px solid var(--on-dark-line);
-  background: var(--forest);
+  background: #01095899; /* surface at 60%: the flares tint the rail too */
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 .side .brand {
   display: flex;
@@ -159,6 +200,19 @@ body.on-dark {
   color: var(--on-dark);
   background: var(--hero-default);
 }
+.side .site-link {
+  display: block;
+  padding: 6px 8px;
+  color: var(--on-dark-50);
+  font-family: var(--font-geist-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.side .site-link:hover { color: var(--mint); }
 .side .grow {
   flex: 1;
 }
@@ -256,13 +310,13 @@ body.on-dark {
 }
 .chip.is-on {
   color: var(--mint);
-  border-color: oklch(52.82% 0.2628 262.87 / 0.5);
+  border-color: var(--mint-line);
 }
 /* A wallet on the wrong network can still sign, so this is a warning the
    reader can act on, not a dead end — clicking it switches the chain. */
 .chip.is-wrong {
   color: var(--hero-warning);
-  border-color: oklch(82.03% 0.1394 77.42 / 0.5);
+  border-color: #f5c76a80;
 }
 .chip.is-off {
   color: var(--on-dark-50);
@@ -469,7 +523,7 @@ body.on-dark {
   color: var(--on-dark-70);
 }
 .rowlist .ico.is-in,
-.rowlist .ico.is-claim { background: var(--mint); color: var(--ink); }
+.rowlist .ico.is-claim { background: var(--mint); color: var(--on-mint); }
 .rowlist .who { min-width: 0; }
 .rowlist .who b { display: block; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rowlist .who b a:hover { text-decoration: underline; text-underline-offset: 0.25em; }
@@ -497,9 +551,9 @@ body.on-dark {
   color: var(--on-dark-50);
   white-space: nowrap;
 }
-.pill.is-back { color: var(--mint); border-color: oklch(52.82% 0.2628 262.87 / 0.5); }
+.pill.is-back { color: var(--mint); border-color: var(--mint-line); }
 .pill.is-none { color: var(--on-dark-50); }
-.pill.is-wait { color: var(--hero-warning); border-color: oklch(82.03% 0.1394 77.42 / 0.5); }
+.pill.is-wait { color: var(--hero-warning); border-color: #f5c76a80; }
 
 /* ---------- Forms (Rulepad's `.field`, dark variant) ---------- */
 .form-stack {
@@ -628,11 +682,11 @@ body.on-dark {
   font-size: 14px;
   line-height: 1.5;
 }
-.notice.is-bad { border-color: oklch(59.4% 0.1975 25.71 / 0.5); color: var(--hero-danger); }
+.notice.is-bad { border-color: #ff7a7a80; color: var(--hero-danger); }
 .notice.is-ok,
-.notice.is-good { border-color: oklch(73.29% 0.1943 151.89 / 0.5); color: var(--hero-success); margin-bottom: 16px; }
+.notice.is-good { border-color: #6fe3a180; color: var(--hero-success); margin-bottom: 16px; }
 .notice.is-wait,
-.notice.is-warn { border-color: oklch(82.03% 0.1394 77.42 / 0.5); color: var(--hero-warning); margin-bottom: 16px; }
+.notice.is-warn { border-color: #f5c76a80; color: var(--hero-warning); margin-bottom: 16px; }
 .notice.is-warn b { display: block; margin-bottom: 2px; color: var(--on-dark); }
 .notice a { color: inherit; text-decoration: underline; text-underline-offset: 0.25em; }
 .notice code, .notice .mono { font-family: var(--font-geist-mono); font-size: 12.5px; }
@@ -696,7 +750,7 @@ body.on-dark {
     transform 0.25s var(--ease-out-quart);
 }
 .shell .btn:active { transform: scale(0.985); }
-.shell .btn-primary { background: var(--mint); color: var(--white); }
+.shell .btn-primary { background: var(--mint); color: var(--on-mint); }
 .shell .btn-primary:hover { background: var(--mint-soft); }
 .shell .btn-secondary { background: transparent; border-color: var(--on-dark-line); color: var(--on-dark); }
 .shell .btn-secondary:hover { border-color: var(--hero-segment); background: var(--hero-default); }
@@ -724,7 +778,7 @@ body.on-dark {
 .sheet .scrim {
   position: absolute;
   inset: 0;
-  background: oklch(12% 0.002 262.87 / 0.8);
+  background: #000243cc;
   cursor: pointer;
 }
 .sheet .box {
@@ -746,10 +800,10 @@ body.on-dark {
 .sheet .box .kv dt { color: var(--ink-60); }
 .sheet .box .kv dd a { color: var(--ink); }
 .sheet .box .notice { border-color: var(--line); background: var(--warm); color: var(--ink-70); }
-.sheet .box .notice.is-bad { border-color: oklch(59.4% 0.1975 25.71 / 0.5); background: transparent; color: var(--hero-danger); }
+.sheet .box .notice.is-bad { border-color: #ff7a7a80; background: transparent; color: var(--hero-danger); }
 .sheet .box .actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .sheet .box .actions .btn { flex: 1 1 auto; }
-.shell .sheet .btn-primary { background: var(--mint); color: var(--white); }
+.shell .sheet .btn-primary { background: var(--mint); color: var(--on-mint); }
 .shell .sheet .btn-primary:hover { background: var(--mint-soft); }
 .shell .sheet .btn-secondary { border-color: var(--ink-16); color: var(--ink); }
 .shell .sheet .btn-secondary:hover { border-color: var(--ink-40); background: var(--ink-8); }
@@ -806,8 +860,8 @@ body.on-dark {
 }
 .shell .tweet-mock .tw b { color: var(--on-dark-70); font-weight: 500; }
 .shell .tweet-mock .tw.is-reply { margin-left: 22px; }
-.shell .tweet-mock .tw.is-bot { margin-left: 44px; background: oklch(52.82% 0.2628 262.87 / 0.18); border-color: oklch(52.82% 0.2628 262.87 / 0.5); }
-.shell .tweet-mock .tw.is-bot b { color: oklch(75% 0.16 262.87); }
+.shell .tweet-mock .tw.is-bot { margin-left: 44px; background: var(--mint-wash); border-color: var(--mint-line); }
+.shell .tweet-mock .tw.is-bot b { color: var(--mint-soft); }
 .shell .tweet-mock .tw { opacity: 0; transform: translateY(6px); animation: tw-in 0.5s var(--ease-out-quart) forwards; }
 .shell .tweet-mock .tw:nth-child(2) { animation-delay: 0.6s; }
 .shell .tweet-mock .tw:nth-child(3) { animation-delay: 1.3s; }
@@ -825,8 +879,8 @@ body.on-dark {
   font-size: 13px;
   margin-top: 1px;
 }
-.setup-mark.is-ok { background: var(--mint); color: var(--ink); }
-.setup-mark.is-missing { background: var(--hero-danger); color: var(--ink); }
+.setup-mark.is-ok { background: var(--mint); color: var(--on-mint); }
+.setup-mark.is-missing { background: var(--hero-danger); color: var(--on-mint); }
 .setup-mark.is-unknown { background: var(--hero-default); color: var(--on-dark-50); }
 [data-setup] li { grid-template-columns: 24px minmax(0, 1fr); }
 [data-setup] li span { word-break: break-word; }

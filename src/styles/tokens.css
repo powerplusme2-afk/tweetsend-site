@@ -69,7 +69,7 @@
      with a real personality — single-storey g, cut terminals, tight apexes —
      rather than another neutral UI sans. JetBrains Mono (OFL) carries every
      number, address and hash, so amounts line up column to column. */
-  --font-sans: 'Gilroy', 'Schibsted Grotesk', ui-sans-serif, system-ui, -apple-system,
+  --font-sans: 'Neue Montreal', 'Gilroy', 'Schibsted Grotesk', ui-sans-serif, system-ui, -apple-system,
     'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
