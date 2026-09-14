@@ -1,4 +1,5 @@
 import { config } from '../../app/chain';
+import { LIMITS } from '../../../shared/command.mjs';
 import { blockedReason, bootShell, closeSheets, el, esc, onWallet, openSheet, privy, setHtml, setText, show, txLink, usd, whoami } from './shell';
 import { dripSentence, paintDone, runPayment } from './payflow';
 
@@ -11,8 +12,16 @@ export function bootPay(): void {
     id: d.id!,
     recipient_wallet: d.wallet || null,
     recipient_handle: d.handle || null,
-    amount_usd: Number(d.amount),
+    amount_usd: d.amount ? Number(d.amount) : NaN,
   };
+  const open = d.open === '1';
+  const amountIn = el<HTMLInputElement>('[data-amount-in]');
+  /* Open send: the amount is whatever the sender types, checked against the limits. */
+  function typedAmount(): number | null {
+    const v = Math.round(Number((amountIn?.value ?? '').replace(/,/g, '')) * 100) / 100;
+    if (!Number.isFinite(v) || v < LIMITS.minUsd || v > LIMITS.maxUsd) return null;
+    return v;
+  }
   const status = d.status ?? 'pending';
   const senderX = d.senderX || null;
   const senderHandle = d.senderHandle || null;
@@ -60,8 +69,25 @@ export function bootPay(): void {
     }
     line.hidden = true;
     btn.disabled = false;
-    btn.textContent = `Send ${usd(intent.amount_usd)}`;
+    const label = () => {
+      if (!open) return `Send ${usd(intent.amount_usd)}`;
+      const v = typedAmount();
+      return v == null ? 'Type an amount' : `Send ${usd(v)}`;
+    };
+    btn.textContent = label();
+    if (open && amountIn) amountIn.oninput = () => { btn.textContent = label(); };
     btn.onclick = () => {
+      if (open) {
+        const v = typedAmount();
+        if (v == null) {
+          line.hidden = false;
+          line.textContent = `Type an amount between ${usd(LIMITS.minUsd)} and ${usd(LIMITS.maxUsd)}.`;
+          amountIn?.focus();
+          return;
+        }
+        line.hidden = true;
+        intent.amount_usd = v;
+      }
       const sheet = el<HTMLElement>('[data-sheet="pay"]')!;
       setHtml('[data-r-to]', `@${esc(intent.recipient_handle ?? '…')}`, sheet);
       setText('[data-r-amount]', `${usd(intent.amount_usd)} USDG`, sheet);

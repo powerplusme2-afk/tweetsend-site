@@ -13,6 +13,7 @@ import { caller } from '../../../../server/auth';
 import { guard, json, fail, body, publicIntent } from '../../../../server/http';
 import { verifyPayment } from '../../../../server/chain';
 import { getIntent, markPaid, logEvent, txHashUsed } from '../../../../../shared/intents.mjs';
+import { LIMITS } from '../../../../../shared/command.mjs';
 
 export const prerender = false;
 
@@ -27,11 +28,19 @@ export const POST: APIRoute = ({ request, params }) =>
     }
     if (!it.recipient_wallet) return fail('This send has no recipient wallet yet.', 409, { code: 'no-wallet' });
 
-    const b = await body<{ usdgHash?: string; ethHash?: string | null }>(request);
+    const b = await body<{ usdgHash?: string; ethHash?: string | null; amountUsd?: number }>(request);
+    /* A send made by a bare mention has no amount until the sender types one. */
+    let amountUsd = it.amount_usd == null ? null : Number(it.amount_usd);
+    if (amountUsd == null) {
+      const typed = Math.round(Number(b.amountUsd) * 100) / 100;
+      if (!Number.isFinite(typed)) return fail('Type an amount first.', 422, { code: 'no-amount' });
+      if (typed < LIMITS.minUsd || typed > LIMITS.maxUsd) return fail(`Sends are $${LIMITS.minUsd}–$${LIMITS.maxUsd}.`, 422, { code: 'limits' });
+      amountUsd = typed;
+    }
     const used = b.usdgHash ? await txHashUsed(b.usdgHash) : null;
     if (used && used !== it.id) return fail('That transaction already paid another send.', 422, { code: 'hash-used' });
     const v = await verifyPayment({
-      usdgHash: b.usdgHash ?? '', ethHash: b.ethHash ?? null, recipient: it.recipient_wallet, amountUsd: Number(it.amount_usd),
+      usdgHash: b.usdgHash ?? '', ethHash: b.ethHash ?? null, recipient: it.recipient_wallet, amountUsd,
     });
     if (!v.ok) {
       await logEvent(it.id, 'paid-refused', v.reason);
@@ -39,7 +48,7 @@ export const POST: APIRoute = ({ request, params }) =>
     }
     const paid = await markPaid(it.id, {
       txHash: b.usdgHash, ethTxHash: b.ethHash ?? null, senderWallet: v.from,
-      senderPrivyId: me.privyId, senderXId: me.xId, senderHandle: me.xHandle,
+      senderPrivyId: me.privyId, senderXId: me.xId, senderHandle: me.xHandle, amountUsd,
     });
     return json({ intent: publicIntent(paid ?? it), verified: { from: v.from, usdgRaw: v.usdgRaw, ethWei: v.ethWei } });
   });

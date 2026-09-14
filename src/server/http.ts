@@ -36,5 +36,5 @@ export async function body<T>(request: Request): Promise<T> {
 /** Strips server-only columns before an intent leaves the API. */
 export function publicIntent(i: Record<string, unknown>) {
   const { sender_privy_id: _a, ...rest } = i;
-  return { ...rest, amount_usd: Number(rest.amount_usd) };
+  return { ...rest, amount_usd: rest.amount_usd == null ? null : Number(rest.amount_usd) };
 }

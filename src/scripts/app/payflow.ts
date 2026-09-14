@@ -65,7 +65,7 @@ export async function runPayment(intent: PayableIntent, sheet: ParentNode): Prom
     onStep('recording');
     const rec = await api<{ intent: Record<string, unknown> }>(`/api/intents/${intent.id}/paid`, {
       method: 'POST',
-      body: JSON.stringify({ usdgHash: r.usdgHash, ethHash: r.ethHash }),
+      body: JSON.stringify({ usdgHash: r.usdgHash, ethHash: r.ethHash, amountUsd: Number(intent.amount_usd) }),
     });
     out.intent = rec.intent;
     out.ok = true;

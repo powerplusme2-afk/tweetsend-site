@@ -10,6 +10,7 @@ import Layout from '../../layouts/Layout.astro';
 import Shell from '../../components/app/Shell.astro';
 import '../../styles/app.css';
 import { getIntent, userByXId } from '../../../shared/intents.mjs';
+import { LIMITS } from '../../../shared/command.mjs';
 
 export const prerender = false;
 
@@ -25,13 +26,15 @@ try {
   dbError = e instanceof Error ? e.message : String(e);
 }
 const handle = recipient?.x_handle ?? intent?.recipient_handle ?? null;
-const amount = intent ? Number(intent.amount_usd) : 0;
-const amountText = `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+/* A bare `@bot` reply makes a send with no amount; the sender types it here. */
+const open = Boolean(intent) && intent!.amount_usd == null && intent!.status === 'pending';
+const amount = intent && intent.amount_usd != null ? Number(intent.amount_usd) : null;
+const amountText = amount == null ? 'any amount' : `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const title = intent ? `Send ${amountText} to @${handle ?? '…'} — TweetSend` : 'No such send — TweetSend';
 ---
 
 <Layout title={title} kit="app">
-  <Shell title={intent ? `${amountText} to @${handle ?? '…'}` : 'No such send'} sub={intent ? (intent.source === 'x' ? `From your reply on X${intent.sender_handle ? ` as @${intent.sender_handle}` : ''}.` : 'Started on the site.') : undefined} active="pay">
+  <Shell title={intent ? (amount == null ? `Send to @${handle ?? '…'}` : `${amountText} to @${handle ?? '…'}`) : 'No such send'} sub={intent ? (intent.source === 'x' ? `From your reply on X${intent.sender_handle ? ` as @${intent.sender_handle}` : ''}.` : 'Started on the site.') : undefined} active="pay">
     <div class="notice is-bad" data-error hidden></div>
 
     {dbError ? (
@@ -46,7 +49,7 @@ const title = intent ? `Send ${amountText} to @${handle ?? '…'} — TweetSend`
         <p>Check the link in the bot's reply, or start a new one from <a href="/app/send">Send</a>.</p>
       </div></div>
     ) : (
-      <div class="grid-2" data-pay data-id={intent.id} data-status={intent.status} data-sender-x={intent.sender_x_id ?? ''} data-sender-handle={intent.sender_handle ?? ''} data-amount={amount} data-wallet={intent.recipient_wallet ?? ''} data-handle={handle ?? ''}>
+      <div class="grid-2" data-pay data-id={intent.id} data-status={intent.status} data-sender-x={intent.sender_x_id ?? ''} data-sender-handle={intent.sender_handle ?? ''} data-amount={amount ?? ''} data-open={open ? '1' : ''} data-wallet={intent.recipient_wallet ?? ''} data-handle={handle ?? ''}>
         <div class="card">
           <div class="recipient is-big">
             {recipient?.avatar_url ? <img class="av" src={recipient.avatar_url} alt="" width="56" height="56" /> : <span class="av av-letter" style="width:56px;height:56px">{(handle ?? '?').slice(0, 1).toUpperCase()}</span>}
@@ -56,7 +59,17 @@ const title = intent ? `Send ${amountText} to @${handle ?? '…'} — TweetSend`
             </div>
           </div>
           <dl class="kv" style="margin-top:20px">
-            <div><dt>Amount</dt><dd>{amountText} USDG</dd></div>
+            {open ? (
+              <div><dt>Amount</dt><dd>
+                <div class="amount-box" style="margin-top:6px">
+                  <input type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-label="Amount in USDG" data-amount-in />
+                  <span class="unit">USDG</span>
+                </div>
+                <p class="help">{`Your choice, $${LIMITS.minUsd}–$${LIMITS.maxUsd} — the tweet named no amount.`}</p>
+              </dd></div>
+            ) : (
+              <div><dt>Amount</dt><dd>{amountText} USDG</dd></div>
+            )}
             <div><dt>Network</dt><dd data-chain-name>Robinhood Chain</dd></div>
             <div><dt>Status</dt><dd data-status-word>{intent.status}</dd></div>
             {intent.tx_hash && <div><dt>Transaction</dt><dd data-tx-link>{intent.tx_hash}</dd></div>}
