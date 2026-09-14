@@ -19,4 +19,4 @@ jobs:
       - name: tick
         run: |
           DRY=""; [ "${{ github.event.inputs.dry }}" = "true" ] && DRY="?dry=1"
-          curl -sS -f -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend-site.vercel.app/api/tick$DRY"
+          curl -sS -f -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend.com/api/tick$DRY"
