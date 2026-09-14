@@ -9,12 +9,12 @@
  * the identity token (which X account and wallet that person has linked).
  *
  * Whether "Sign in with X" is even offered is read from the Privy app's own
- * public configuration at load time, not assumed. On 14 Sep 2026 the shared
- * Privy app had `twitter_oauth: false`; passing a login method the app does
- * not have enabled makes Privy refuse to open the login sheet at all. So: X
- * when the app allows it, email + wallet otherwise, and the page says which
- * it got. The moment the switch is flipped in the Privy dashboard the X button
- * appears on the next load — no rebuild.
+ * public configuration at load time, not assumed. Passing a login method the
+ * app does not have enabled makes Privy refuse to open the login sheet at all.
+ * So: X when the app allows it, email + wallet otherwise, and the page says
+ * which it got. The shared app had `twitter_oauth: false` until the client
+ * switched it on (14 Sep 2026); the X button appeared on the next load with
+ * no rebuild, as intended.
  *
  * The app id is a public client identifier, never a secret. It is read from
  * `PUBLIC_PRIVY_APP_ID`, falling back to the shared Privy project the sibling

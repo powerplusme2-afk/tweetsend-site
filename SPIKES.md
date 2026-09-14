@@ -21,13 +21,17 @@ Explorer: https://explorer.testnet.chain.robinhood.com/tx/<hash>
 
 `node .verify/e2e.mjs http://localhost:4346` with `DEV_FAKE_AUTH=1`: **19/19**. Includes a real 5 USDG transfer `0x8b2ffe0efd53ad7664c321857be9dd162f2604bb1597025703293b8f5dd259a3`, verified by the server from the receipt's `Transfer` log (to = recipient wallet, value ≥ amount), then `paid` → `claimed` when the recipient signed in. Refusals covered: amount outside limits, self-send, unknown hash, a hash reused for a second send, an unknown handle with no `PRIVY_APP_SECRET` (the error names the variable).
 
-## Spike 1 — Privy pre-made wallet for an X id, then sign in → same wallet — NOT RUN
+## Spike 1 — Privy pre-made wallet for an X id, then sign in → same wallet — HALF RUN
 
-Blocked on two things the client owns:
-1. The shared Privy app `cmtwzyj3t013t0ci9h4wew655` has `twitter_oauth: false` (read from `https://auth.privy.io/api/v1/apps/<id>` on 14 Sep 2026). Enable it: Privy dashboard → Login methods → Twitter (X). The app detects the switch at load time — no rebuild.
-2. `PRIVY_APP_SECRET` in the server env, so the worker can call `POST /v1/users` (pre-generate). The call is written in `shared/privy.mjs`; the endpoint spellings for "user by Twitter subject/username" are UNVERIFIED until this runs.
+Done 14 Sep 2026 (later the same day):
+- Privy app `cmtwzyj3t013t0ci9h4wew655` now reports `twitter_oauth: true` (client switched it on with the X app's OAuth 2.0 Client ID).
+- Live https://tweetsend-site.vercel.app/app: banner gone, "Sign in with X" → Privy sheet lists Email / Twitter / wallet → Twitter sends the browser to `https://x.com/i/oauth2/authorize` with `redirect_uri=https://auth.privy.io/api/v1/oauth/callback`, `scope=users.read tweet.read`. X rendered its "Authorize app" page (asks to log in). No console errors.
 
-What to run once both are set: `node worker/spike1.mjs <x-numeric-id> <handle>` (to be written when the secret exists) → prints the pre-made wallet; then sign in with that X account on `/app/settings` and compare the "TweetSend wallet" line.
+NOT RUN — needs a person with an X account and the app secret:
+1. Log in on that X page and authorize. If X then says the callback is not allowed, add `https://auth.privy.io/api/v1/oauth/callback` under User authentication settings in the X developer portal.
+2. `PRIVY_APP_SECRET` in the env, then `node worker/spike1.mjs <x-numeric-id> [handle]` (exit 2 without input/secret, 3 if Privy refuses) → prints the pre-made wallet; sign in with that X account on `/app/settings` and compare the "TweetSend wallet" line. The "user by Twitter subject/username" endpoint spellings in `shared/privy.mjs` are UNVERIFIED until this runs.
+
+Note: on the live site the first sign-in will end at "database is not connected" until Neon is installed (terms acceptance pending, see README).
 
 ## Spike 2 — poll mentions, confirm `in_reply_to_user_id` + field spelling — NOT RUN LIVE
 
