@@ -10,8 +10,8 @@ import { json } from '../../server/http';
 import { APP_ID } from '../../server/env';
 import { chainId, config } from '../../app/chain';
 import { LIMITS, BOT_HANDLE } from '../../../shared/command.mjs';
-import { privySecretPresent } from '../../../shared/privy.mjs';
-import { xKeysPresent, xReadPresent } from '../../../shared/x.mjs';
+import { privySecretPresent, getUserByXId } from '../../../shared/privy.mjs';
+import { xKeysPresent, xReadPresent, userByHandle } from '../../../shared/x.mjs';
 import { databaseKind } from '../../../shared/db.mjs';
 
 export const prerender = false;
@@ -27,8 +27,24 @@ async function xLoginEnabled(): Promise<boolean | null> {
   }
 }
 
-export const GET: APIRoute = async () => {
+/**
+ * `?probe=1`: one real call each to X (a public profile lookup) and Privy (a
+ * user lookup that is expected to find nobody) so the client can see that the
+ * keys they entered are accepted — status codes only, never a value.
+ */
+async function probe(): Promise<{ x: Record<string, unknown>; privy: Record<string, unknown> }> {
+  const x = await userByHandle('X')
+    .then((u) => ({ ok: true, status: 200, found: Boolean(u?.id) }))
+    .catch((e: Error & { code?: string; status?: number }) => ({ ok: false, status: e.status ?? null, code: e.code ?? null, reason: e.message.replace(/Bearer\s+\S+/g, 'Bearer …') }));
+  const privy = await getUserByXId('0')
+    .then((u) => ({ ok: true, status: u ? 200 : 404 }))
+    .catch((e: Error & { code?: string; status?: number }) => ({ ok: false, status: e.status ?? null, code: e.code ?? null, reason: e.message }));
+  return { x, privy };
+}
+
+export const GET: APIRoute = async ({ url }) => {
   const c = config();
+  if (url.searchParams.get('probe') === '1') return json(await probe());
   return json({
     chainId: chainId(),
     chainName: c.name,
