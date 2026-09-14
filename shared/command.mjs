@@ -69,7 +69,7 @@ export const MESSAGES = Object.freeze({
   /** Command detected — decision B: with the pay link ($0.20). */
   ready: ({ amount, to, link }) =>
     amount == null
-      ? `Ready — pick an amount to send @${to}: ${link}`
+      ? `Ready — send @${to} any amount you like: ${link}`
       : `Ready — confirm your ${usd(amount)} to @${to}: ${link}`,
   /** Paid, recipient already has an account. */
   sent: ({ amount, to }) => `${usd(amount)} sent to @${to}.`,

@@ -16,6 +16,9 @@ export function bootPay(): void {
   };
   const open = d.open === '1';
   const amountIn = el<HTMLInputElement>('[data-amount-in]');
+  /* `?a=5` from the bot's link pre-fills the box when the tweet named a number. */
+  const hinted = Number(new URLSearchParams(location.search).get('a'));
+  if (amountIn && Number.isFinite(hinted) && hinted >= LIMITS.minUsd && hinted <= LIMITS.maxUsd) amountIn.value = String(hinted);
   /* Open send: the amount is whatever the sender types, checked against the limits. */
   function typedAmount(): number | null {
     const v = Math.round(Number((amountIn?.value ?? '').replace(/,/g, '')) * 100) / 100;
