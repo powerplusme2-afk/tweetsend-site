@@ -19,8 +19,8 @@ jobs:
         run: |
           A="${{ github.event.inputs.action }}"
           if [ "$A" = "status" ]; then
-            curl -sS -f -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend-site.vercel.app/api/x/hooks"
+            curl -sS -w "\n%{http_code}\n" -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend-site.vercel.app/api/x/hooks" | tee out.txt; grep -q "^200$" out.txt
           else
-            curl -sS -f -X POST -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" -H "content-type: application/json" \
-              -d "{\"action\":\"$A\"}" "https://tweetsend-site.vercel.app/api/x/hooks"
+            curl -sS -w "\n%{http_code}\n" -X POST -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" -H "content-type: application/json" \
+              -d "{\"action\":\"$A\"}" "https://tweetsend-site.vercel.app/api/x/hooks" | tee out.txt; grep -q "^200$" out.txt
           fi
