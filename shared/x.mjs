@@ -92,11 +92,20 @@ async function get(path, params) {
   return call('GET', path, { params });
 }
 
-/** One bearer-token request; a non-2xx becomes an error that names the call, never a key. */
-async function call(method, path, { params, body } = {}) {
+/**
+ * One request; a non-2xx becomes an error that names the call, never a key.
+ * Bearer (app-only) by default; `user: true` signs it as the bot account with
+ * OAuth 1.0a instead — what X demands for a subscription to the bot's own
+ * mentions ("OAuth user access token is required for this event type").
+ */
+async function call(method, path, { params, body, user = false } = {}) {
   const url = new URL(`${API}${path}`);
-  for (const [k, v] of Object.entries(params ?? {})) if (v !== undefined && v !== null) url.searchParams.set(k, String(v));
-  const headers = { authorization: `Bearer ${need('X_BEARER_TOKEN')}` };
+  const query = {};
+  for (const [k, v] of Object.entries(params ?? {})) if (v !== undefined && v !== null) query[k] = String(v);
+  for (const [k, v] of Object.entries(query)) url.searchParams.set(k, v);
+  const headers = {
+    authorization: user ? oauthHeader(method, `${API}${path}`, query) : `Bearer ${need('X_BEARER_TOKEN')}`,
+  };
   if (body !== undefined) headers['content-type'] = 'application/json';
   const r = await fetch(url, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
   const json = await r.json().catch(() => null);
@@ -305,7 +314,7 @@ const MENTION_EVENT = 'post.mention.create';
 
 /** Every webhook on the app and every activity subscription — ids and URLs only. */
 export async function hookStatus() {
-  const [w, s] = await Promise.all([call('GET', '/webhooks'), call('GET', '/activity/subscriptions', { params: { max_results: 100 } })]);
+  const [w, s] = await Promise.all([call('GET', '/webhooks'), call('GET', '/activity/subscriptions', { params: { max_results: 100 }, user: true })]);
   return {
     webhooks: (w?.data ?? []).map((x) => ({ id: x.id, url: x.url, valid: x.valid, createdAt: x.created_at })),
     subscriptions: (s?.data ?? []).map((x) => ({
@@ -341,12 +350,13 @@ export async function installWebhook({ url, botUserId }) {
   if (!sub) {
     const j = await call('POST', '/activity/subscriptions', {
       body: { event_type: MENTION_EVENT, filter: { user_id: String(botUserId) }, tag: 'mentions', webhook_id: hook.id },
+      user: true,
     });
     const s = j?.data?.subscription ?? j?.data ?? {};
     sub = { id: s.subscription_id ?? s.id ?? null, eventType: MENTION_EVENT, userId: String(botUserId), webhookId: hook.id };
     madeSub = true;
   } else if (sub.webhookId !== hook.id) {
-    await call('PUT', `/activity/subscriptions/${sub.id}`, { body: { webhook_id: hook.id } });
+    await call('PUT', `/activity/subscriptions/${sub.id}`, { body: { webhook_id: hook.id }, user: true });
     sub.webhookId = hook.id;
   }
   return { webhook: hook, subscription: sub, madeHook, madeSub };
@@ -360,7 +370,7 @@ export async function uninstallWebhook({ url }) {
   for (const s of st.subscriptions) {
     if (s.eventType !== MENTION_EVENT) continue;
     if (hook && s.webhookId !== hook.id) continue;
-    await call('DELETE', `/activity/subscriptions/${s.id}`);
+    await call('DELETE', `/activity/subscriptions/${s.id}`, { user: true });
     removed.subscriptions.push(s.id);
   }
   if (hook) {
