@@ -42,3 +42,14 @@ Done 14 Sep 2026 (evening), all on the live site with the client's keys in Verce
 - Instant path (14 Sep 2026): X Activity API webhook `https://tweetsend.com/api/x/webhook` (id 2099513597781057537, CRC valid; the earlier .vercel.app hook was replaced — X allows one webhook per app) + `post.mention.create` subscription 2099523730560995328 on @tweetsendcc, installed by the `x webhook` workflow (`gh workflow run hooks.yml -f action=install|status|uninstall`). The subscription must be created as the bot account (OAuth 1.0a) — app-only bearer gets `OauthAccessTokenRequired`. Each mention is claimed once in `seen_mentions`, so webhook and poll never both answer. First real webhook delivery NOT yet observed — needs a real `@tweetsendcc $5` reply; `status` shows the last 5 deliveries.
 
 NOT RUN: a real mention. Next: from any X account, reply `@tweetsendcc $5` under someone else's tweet, then `GET /api/tick?dry=1` must show one result with `intent` and `walletMade`, and `wouldPost` carrying the pay link. That also runs spike 1's pre-generate for real. The reply call (`POST /2/tweets`) stays UNVERIFIED until the first non-dry tick.
+
+## 14 Sep 2026, evening — the webhook never fires; the stream does
+
+- First real mention (tweet 2099529610295972245, @onemavik → @perplexity_ai, "$5") at 16:04:01Z: X pushed nothing to the webhook. A hand-run poll answered it at 16:05:23Z (reply 2099529954656497775, intent epnkf3encs).
+- Two self-mentions from the bot (`hooks ping`) at 16:25Z and 16:28Z: zero webhook POSTs, not even a rejected one (rejects are now logged as `webhook-reject`). Both posts deleted (`unping`).
+- `POST /2/webhooks/replay` refuses our hook ("WebhookIdInvalid … not associated with app ID") — replay is not for this tier.
+- X developer forum, thread 273644: the same `post.mention.create` subscription delivers over `GET /2/activity/stream` in ~4 s but never POSTs to the webhook, since 2026-08-09. Matches exactly.
+- `hooks stream-probe` from Vercel: `{"opened":true,"seconds":25,"events":0}` — the read token may hold the stream (headers take ~15 s to arrive; a 12 s probe times out). First connect after a subscription change → 503 ProvisioningSubscription for about a minute.
+- GitHub cron: 0 scheduled runs of tick.yml between 12:50Z and 16:40Z (5 dispatches only). The bot answers nothing on its own right now. Cron expression changed to re-register; relay.mjs also ticks every 5 min.
+- Built: shared/stream.mjs (line splitter + reconnecting reader), worker/index.mjs --stream, worker/relay.mjs (needs X_BEARER_TOKEN + TICK_TOKEN only; forwards events to /api/x/event), .github/workflows/relay.yml (self-renewing 350-min job; private repo = 2 000 free minutes a month ≈ 1.4 days, public = uncapped).
+- Not yet proven: an event flowing stream → relay → /api/x/event → reply. Needs the relay running somewhere with the read token.
