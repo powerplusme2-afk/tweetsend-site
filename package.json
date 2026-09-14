@@ -13,7 +13,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "worker": "node worker/index.mjs",
-    "test": "node --test worker/*.test.mjs src/server/*.test.mjs"
+    "test": "node --test shared/*.test.mjs worker/*.test.mjs"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.5",
