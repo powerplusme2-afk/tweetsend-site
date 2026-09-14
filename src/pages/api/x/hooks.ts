@@ -14,6 +14,7 @@ import type { APIRoute } from 'astro';
 import { timingSafeEqual } from 'node:crypto';
 import { json, fail, guard, body } from '../../../server/http';
 import { hookStatus, installWebhook, uninstallWebhook, me, xKeysPresent } from '../../../../shared/x.mjs';
+import { getSql } from '../../../../shared/db.mjs';
 
 export const prerender = false;
 
@@ -33,7 +34,15 @@ export const GET: APIRoute = ({ request }) =>
   guard(async () => {
     if (!allowed(request)) return fail('TICK_TOKEN missing or wrong.', 401);
     if (!xKeysPresent()) return fail('X keys are not all set.', 503);
-    return json({ url: WEBHOOK_URL, ...(await hookStatus()) });
+    /* The last few deliveries, so "did X actually push anything?" has an
+       answer without a database login. Event rows carry ids and outcomes,
+       never keys. */
+    const sql = await getSql();
+    const recent = await sql`
+      select kind, detail, at from events
+      where kind in ('webhook', 'webhook-error') order by at desc limit 5`;
+    const seen = await sql`select via, count(*)::int as n from seen_mentions group by via`;
+    return json({ url: WEBHOOK_URL, ...(await hookStatus()), recent, seen });
   });
 
 export const POST: APIRoute = ({ request }) =>
