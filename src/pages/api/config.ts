@@ -11,7 +11,7 @@ import { APP_ID } from '../../server/env';
 import { chainId, config } from '../../app/chain';
 import { LIMITS, BOT_HANDLE } from '../../../shared/command.mjs';
 import { privySecretPresent, getUserByXId } from '../../../shared/privy.mjs';
-import { xKeysPresent, xReadPresent, userByHandle } from '../../../shared/x.mjs';
+import { xKeysPresent, xReadPresent, userByHandle, me } from '../../../shared/x.mjs';
 import { databaseKind } from '../../../shared/db.mjs';
 
 export const prerender = false;
@@ -32,14 +32,20 @@ async function xLoginEnabled(): Promise<boolean | null> {
  * user lookup that is expected to find nobody) so the client can see that the
  * keys they entered are accepted — status codes only, never a value.
  */
-async function probe(): Promise<{ x: Record<string, unknown>; privy: Record<string, unknown> }> {
+async function probe(): Promise<{ x: Record<string, unknown>; bot: Record<string, unknown>; privy: Record<string, unknown> }> {
   const x = await userByHandle('X')
     .then((u) => ({ ok: true, status: 200, found: Boolean(u?.id) }))
     .catch((e: Error & { code?: string; status?: number }) => ({ ok: false, status: e.status ?? null, code: e.code ?? null, reason: e.message.replace(/Bearer\s+\S+/g, 'Bearer …') }));
   const privy = await getUserByXId('0')
     .then((u) => ({ ok: true, status: u ? 200 : 404 }))
     .catch((e: Error & { code?: string; status?: number }) => ({ ok: false, status: e.status ?? null, code: e.code ?? null, reason: e.message }));
-  return { x, privy };
+  /* The bot account's handle is public; it is the one thing the probe names. */
+  const bot = xKeysPresent()
+    ? await me()
+        .then((b) => ({ ok: true, status: 200, handle: b.handle }))
+        .catch((e: Error & { code?: string; status?: number }) => ({ ok: false, status: e.status ?? null, code: e.code ?? null, reason: e.message }))
+    : { ok: false, status: null, code: 'x-keys-missing', reason: 'X_ACCESS_TOKEN / X_ACCESS_TOKEN_SECRET not set' };
+  return { x, bot, privy };
 }
 
 export const GET: APIRoute = async ({ url }) => {

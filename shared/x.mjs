@@ -95,10 +95,24 @@ async function get(path, params) {
   return json;
 }
 
-/** The bot's own account — id and handle. One call at worker start. */
+/**
+ * The bot's own account — id and handle. One call at worker start. `/users/me`
+ * only answers in user context, so this is signed with the access token, not
+ * the bearer: it tells us which account the tokens belong to, which is also
+ * how the bot learns its own handle without anyone typing it.
+ */
 export async function me() {
-  const j = await get('/users/me');
-  return { id: j.data.id, handle: j.data.username };
+  const url = `${API}/users/me`;
+  const r = await fetch(url, { headers: { authorization: oauthHeader('GET', url) } });
+  const json = await r.json().catch(() => null);
+  if (!r.ok) {
+    const e = new Error(`X GET /users/me → ${r.status}: ${JSON.stringify(json).slice(0, 300)}`);
+    e.code = 'x-http';
+    e.status = r.status;
+    e.body = json;
+    throw e;
+  }
+  return { id: json.data.id, handle: json.data.username };
 }
 
 /** Public profile by @handle: id, handle, name, avatar. $0.01 per fresh lookup. */
