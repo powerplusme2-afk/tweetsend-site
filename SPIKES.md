@@ -33,8 +33,11 @@ NOT RUN — needs a person with an X account and the app secret:
 
 Note: on the live site the first sign-in will end at "database is not connected" until Neon is installed (terms acceptance pending, see README).
 
-## Spike 2 — poll mentions, confirm `in_reply_to_user_id` + field spelling — NOT RUN LIVE
+## Spike 2 — poll mentions, confirm `in_reply_to_user_id` + field spelling — HALF RUN
 
-The parser is written against the documented shape and unit-tested (`worker/worker.test.mjs`, both `referenced_tweets` and `referenced_posts` accepted). Needs `X_BEARER_TOKEN` in the env and a test reply to the bot account. Run: `node worker/index.mjs --once --dry` — reads mentions, writes intents, posts nothing.
+Done 14 Sep 2026 (evening), all on the live site with the client's keys in Vercel:
+- `GET /api/config?probe=1` → X bearer `200` (profile lookup), bot access token `200` (`/users/me` = **@tweetsendcc**), Privy secret accepted (`404` on an unknown subject).
+- First live tick `GET /api/tick?dry=1` → `{"bot":"tweetsendcc","since":null,"mentions":0,"announced":0,"expired":0}` — the mentions call authenticates and returns an empty page (nobody has mentioned the bot yet).
+- Heartbeat: `.github/workflows/tick.yml` calls `/api/tick` every 5 minutes with `TICK_TOKEN` (repo secret + Vercel env). Vercel Hobby crons run once a day, so GitHub is the scheduler.
 
-The OAuth 1.0a signer reproduces the worked example in X's docs byte for byte (`hCtSmYh+iHYCEqBWrE7C7hYmtUk=`), so the reply call is expected to authenticate; UNVERIFIED against the live API until the bot account's access token + secret exist.
+NOT RUN: a real mention. Next: from any X account, reply `@tweetsendcc $5` under someone else's tweet, then `GET /api/tick?dry=1` must show one result with `intent` and `walletMade`, and `wouldPost` carrying the pay link. That also runs spike 1's pre-generate for real. The reply call (`POST /2/tweets`) stays UNVERIFIED until the first non-dry tick.

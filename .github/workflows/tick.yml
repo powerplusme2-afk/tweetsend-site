@@ -1,0 +1,22 @@
+# The bot's heartbeat: one tick on the live site every 5 minutes (GitHub's
+# smallest cron step, often a few minutes late). Nothing runs here except a
+# curl; the work happens in /api/tick on Vercel with the keys that live there.
+# TICK_TOKEN is a random string made for this — not one of the client's keys.
+name: bot tick
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+    inputs:
+      dry:
+        description: 'dry run (post nothing)'
+        default: 'false'
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: tick
+        run: |
+          DRY=""; [ "${{ github.event.inputs.dry }}" = "true" ] && DRY="?dry=1"
+          curl -sS -f -H "authorization: Bearer ${{ secrets.TICK_TOKEN }}" "https://tweetsend-site.vercel.app/api/tick$DRY"
