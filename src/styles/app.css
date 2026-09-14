@@ -2,8 +2,8 @@
    Rulepad's dashboard shell (sidebar, topbar, plates, sheet) copied 1:1 on
    14 Sep 2026, then dressed in the landing page's clothes the same evening:
    the tweetsend-vivid palette (navy #000243 ground, blue ramp to #55B1F7,
-   paper #FFFDF9 text), Neue Montreal + JetBrains Mono, 12px radius, and the
-   landing's slow blue flares drifting behind the shell. Rulepad's rem values
+   paper #FFFDF9 text on the landing's neutral #101010 ground — no blue cast on
+   surfaces, blue only on controls), Neue Montreal + JetBrains Mono, 12px radius. Rulepad's rem values
    (10px root) are written out in px because this site's root is 16px. The
    landing page is gone from this deployment — `/` redirects to the marketing
    site (astro.config.mjs). */
@@ -16,28 +16,28 @@
      Names below are Rulepad's token names kept so the shell rules read
      unchanged; values are the landing's. */
   --hero-accent: #55b1f7;
-  --hero-background: #05071a; /* the landing as it renders: near-black, navy only in the flares */
+  --hero-background: #101010; /* the landing's own ground: neutral near-black, no blue cast */
   --hero-border: #fffdf91f;
   --hero-danger: #ff7a7a;
-  --hero-default: #151b3f;
-  --hero-field: #080b22;
+  --hero-default: #262626;
+  --hero-field: #141414;
   --hero-foreground: #fffdf9;
-  --hero-muted: #97a4c2;
-  --hero-overlay: #0c1030;
-  --hero-segment: #2a72bf;
+  --hero-muted: #a3a3a0;
+  --hero-overlay: #181818;
+  --hero-segment: #3a3a3a;
   --hero-separator: #fffdf914;
   --hero-success: #6fe3a1;
-  --hero-surface: #0c1030;
-  --hero-surface-2: #121843;
-  --hero-surface-3: #1a2358;
+  --hero-surface: #181818;
+  --hero-surface-2: #202020;
+  --hero-surface-3: #2a2a2a;
   --hero-warning: #f5c76a;
 
   /* "ink" is the sheet's text: the sheet is a dark overlay, so ink is light. */
   --ink: var(--hero-foreground);
   --ink-90: #fffdf9e6;
   --ink-70: var(--hero-muted);
-  --ink-60: #97a4c2d9;
-  --ink-40: #97a4c280;
+  --ink-60: #a3a3a0d9;
+  --ink-40: #a3a3a080;
   --ink-16: var(--hero-border);
   --ink-8: #fffdf90f;
 
@@ -60,7 +60,7 @@
 
   --on-dark: var(--hero-foreground);
   --on-dark-70: var(--hero-muted);
-  --on-dark-50: #97a4c2b3;
+  --on-dark-50: #a3a3a0b3;
   --on-dark-line: var(--hero-border);
   --on-dark-glass: var(--hero-default);
 
@@ -96,37 +96,6 @@ body.on-dark {
   font-size: 16px;
   font-weight: 400;
   line-height: 1.55;
-  position: relative;
-  isolation: isolate;
-}
-/* The landing's WebGL flares (#06258B / #2A72BF on #000243), as two soft
-   radial washes that drift the way the shader's camera does. Fixed, behind
-   everything, and still when the reader asked for less motion. */
-body.on-dark::before,
-body.on-dark::after {
-  content: '';
-  position: fixed;
-  inset: -20%;
-  z-index: -1;
-  pointer-events: none;
-  will-change: transform;
-}
-body.on-dark::before {
-  background:
-    radial-gradient(34% 30% at 22% 14%, #0f3ba28c 0%, #0f3ba200 70%),
-    radial-gradient(28% 26% at 86% 82%, #06258bb3 0%, #06258b00 70%);
-  animation: flare-a 26s var(--ease-in-out) infinite alternate;
-}
-body.on-dark::after {
-  background:
-    radial-gradient(20% 18% at 68% 22%, #2a72bf40 0%, #2a72bf00 70%),
-    radial-gradient(24% 22% at 30% 86%, #0f3ba24d 0%, #0f3ba200 70%);
-  animation: flare-b 34s var(--ease-in-out) infinite alternate;
-}
-@keyframes flare-a { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(4%, -3%, 0) scale(1.08); } }
-@keyframes flare-b { from { transform: translate3d(0, 0, 0) scale(1.05); } to { transform: translate3d(-5%, 4%, 0) scale(0.98); } }
-@media (prefers-reduced-motion: reduce) {
-  body.on-dark::before, body.on-dark::after { animation: none; }
 }
 /* Rulepad's headings carry no weight of their own; each surface sets it. */
 .on-dark :is(h1, h2, h3, h4, h5, h6) {
@@ -149,7 +118,7 @@ body.on-dark::after {
   min-height: 100svh;
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
-  background: transparent; /* the flares on body show through */
+  background: var(--forest-deep);
   color: var(--on-dark);
 }
 .side {
@@ -161,9 +130,7 @@ body.on-dark::after {
   gap: 24px;
   padding: 20px 16px;
   border-right: 1px solid var(--on-dark-line);
-  background: #0c103099; /* surface at 60%: the flares tint the rail too */
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  background: var(--forest);
 }
 .side .brand {
   display: flex;
